@@ -88,6 +88,11 @@ public class VLabRestClient {
 	private String apiKey;
 	private Client client;
 
+	/** Construct a new REST client instance
+	 * 
+	 * @param serverBaseUri The base URI of the server to construct API calls to the JSON REST API.
+	 * @param apiKey The API key for the relevant user account, available from the HCS vLab web interface
+	 */
 	public VLabRestClient(String serverBaseUri, String apiKey) {
 		this.serverBaseUri = serverBaseUri;
 		this.apiKey = apiKey;
@@ -95,6 +100,12 @@ public class VLabRestClient {
 		client.register(JacksonFeature.class);
 	}
 
+	/** A representation of an HCS vLab item list. Modelled fairly closely on the JSON REST model,
+	 * but at a slightly higher level, with a number of convenience methods to enable 
+	 * easier retrieval of related objects, for example
+	 * @author andrew.mackinlay
+	 *
+	 */
 	public class ItemList {
 		private JsonItemList fromJson;
 		private String uri;
@@ -104,10 +115,17 @@ public class VLabRestClient {
 			this.uri = uri;
 		}
 		
+		/** Get the URI which was used to retrieve this item from the REST API */
 		public String getUri() {
 			return uri;
 		}
 		
+		/** Get the raw URIs for the items from this list.
+		 * 
+		 * {@link #getCatalogItems()} provides a higher-level interface to the
+		 * candidate items which is probably more useful 
+		 * @return an array of URIs, stored as strings.
+		 */
 		public String[] itemUris() {
 			return fromJson.getItems();
 		}
@@ -126,6 +144,7 @@ public class VLabRestClient {
 //			return jcis;
 //		}
 
+		/** Fetch the items associated with this item list */
 		public List<CatalogItem> getCatalogItems() {
 			List<CatalogItem> cis = new ArrayList<CatalogItem>();
 			for (String itemUri : itemUris()) {
