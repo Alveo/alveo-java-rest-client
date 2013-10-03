@@ -3,11 +3,10 @@
 	<modelVersion>4.0.0</modelVersion>
 
 	<groupId>com.nicta.hls</groupId>
-	<artifactId>uimavlab</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
 	<packaging>jar</packaging>
 
-	<name>uimavlab</name>
+	<name>vlabclient</name>
 	<url>http://maven.apache.org</url>
 
 	<properties>
@@ -37,31 +36,8 @@
 			<version>2.3.1</version>
 		</dependency>
 	</dependencies>
-
-
-
 	<build>
 		<plugins>
-			<plugin>
-				<groupId>org.apache.maven.plugins</groupId>
-				<artifactId>maven-antrun-plugin</artifactId>
-				<version>1.7</version>
-				<executions>
-					<execution>
-						<id>compile</id>
-						<phase>compile</phase>
-						<configuration>
-							<target>
-								<property name="runtimeClasspath" refid="maven.runtime.classpath" />
-								<echo message="runtime_classpath: ${runtimeClasspath}" />
-							</target>
-						</configuration>
-						<goals>
-							<goal>run</goal>
-						</goals>
-					</execution>
-				</executions>
-			</plugin>
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-assembly-plugin</artifactId>
@@ -83,4 +59,5 @@
 			</plugin>
 		</plugins>
 	</build>
+	<artifactId>vlabclient</artifactId>
 </project>

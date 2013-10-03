@@ -1,4 +1,4 @@
-package com.nicta.hls.uimavlab;
+package com.nicta.hls.vlabclient;
 
 import java.util.ArrayList;
 import java.util.List;
