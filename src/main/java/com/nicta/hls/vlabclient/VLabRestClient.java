@@ -28,13 +28,12 @@ public class VLabRestClient {
 		client = ClientBuilder.newClient();
 	}
 
-	/** A representation of an HCS vLab item list. Modelled fairly closely on the JSON REST model,
-	 * but at a slightly higher level, with a number of convenience methods to enable 
-	 * easier retrieval of related objects, for example
+	/** A representation of an HCS vLab item list which uses the vLab REST client
+	 * to retrieve related data
 	 * @author andrew.mackinlay
 	 *
 	 */
-	public class ItemList {
+	public class ItemList implements VLabItemList {
 		private JsonItemList fromJson;
 		private String uri;
 		
@@ -43,30 +42,37 @@ public class VLabRestClient {
 			this.uri = uri;
 		}
 		
-		/** Get the URI which was used to retrieve this item from the REST API */
+		/* (non-Javadoc)
+		 * @see com.nicta.hls.vlabclient.VLabItemList#getUri()
+		 */
 		public String getUri() {
 			return uri;
 		}
 		
-		/** Get the raw URIs for the items from this list.
-		 * 
-		 * {@link #getCatalogItems()} provides a higher-level interface to the
-		 * candidate items which is probably more useful 
-		 * @return an array of URIs, stored as strings.
+		/* (non-Javadoc)
+		 * @see com.nicta.hls.vlabclient.VLabItemList#itemUris()
 		 */
 		public String[] itemUris() {
 			return fromJson.getItems();
 		}
 		
+		/* (non-Javadoc)
+		 * @see com.nicta.hls.vlabclient.VLabItemList#name()
+		 */
 		public String name() {
 			return fromJson.getName();
 		}
 		
+		/* (non-Javadoc)
+		 * @see com.nicta.hls.vlabclient.VLabItemList#numItems()
+		 */
 		public long numItems() {
 			return fromJson.getNumItems();
 		}
 		
-		/** Fetch the items associated with this item list */
+		/* (non-Javadoc)
+		 * @see com.nicta.hls.vlabclient.VLabItemList#getCatalogItems()
+		 */
 		public List<CatalogItem> getCatalogItems() {
 			List<CatalogItem> cis = new ArrayList<CatalogItem>();
 			for (String itemUri : itemUris()) {
@@ -82,7 +88,7 @@ public class VLabRestClient {
 	 * @author andrew.mackinlay
 	 *
 	 */
-	public class CatalogItem {
+	public class CatalogItem implements VLabItem {
 		private JsonCatalogItem fromJson;
 		private String uri;
 		
@@ -91,7 +97,9 @@ public class VLabRestClient {
 			this.uri = uri;
 		}
 		
-		/** Return the documents associated with this item */
+		/* (non-Javadoc)
+		 * @see com.nicta.hls.vlabclient.VLabItem#documents()
+		 */
 		public List<Document> documents() {
 			JsonDocument[] jsonDocs = fromJson.getDocuments();
 			List<Document> docs = new ArrayList<Document>(jsonDocs.length);
@@ -100,32 +108,29 @@ public class VLabRestClient {
 			return docs;
 		}
 		
-		/** Return the URI (a valid REST URI) from which this item was retrieved */
+		/* (non-Javadoc)
+		 * @see com.nicta.hls.vlabclient.VLabItem#getUri()
+		 */
 		public String getUri() {
 			return uri;
 		}
 		
-		/** Get the URL at which the primary text of the item is stored;
-		 * 
-		 * Library users will probably be more interested in the {@link #primaryText()} method
-		 * which does the text retrieval automatically.
-		 * @return a URL storing the primary text
+		/* (non-Javadoc)
+		 * @see com.nicta.hls.vlabclient.VLabItem#getPrimaryTextUrl()
 		 */
 		public String getPrimaryTextUrl() {
 			return fromJson.getPrimaryTextUrl();
 		}
 		
-		/** Get the primary text of the item 
-		 * 
-		 * @return the primary text associated with an item
+		/* (non-Javadoc)
+		 * @see com.nicta.hls.vlabclient.VLabItem#primaryText()
 		 */
 		public String primaryText() {
 			return getTextInvocBuilder(getPrimaryTextUrl()).get(String.class);
 		}
 		
-		/** Get the metadata associated with an item
-		 * 
-		 * @return a mapping from all metadata key names to metadata values
+		/* (non-Javadoc)
+		 * @see com.nicta.hls.vlabclient.VLabItem#getMetadata()
 		 */
 		public Map<String, String> getMetadata() {
 			return fromJson.getMetadata();
@@ -137,43 +142,36 @@ public class VLabRestClient {
 	 * @author andrew.mackinlay
 	 *
 	 */
-	public class Document {
+	public class Document implements VLabDocument {
 		private JsonDocument fromJson;
 		
 		private Document(JsonDocument raw) {
 			fromJson = raw;
 		}
 		
-		/** Get the URL where the raw text is stored. 
-		 * 
-		 * The {@link #rawText()} method is probably more useful to end users
-		 * 
-		 * @return The URL from which the raw text can be retrieved
+		/* (non-Javadoc)
+		 * @see com.nicta.hls.vlabclient.VLabDocument#getRawTextUrl()
 		 */
 		public String getRawTextUrl() {
 			return fromJson.getUrl();
 		}
 		
-		/** Get the 'type' of the document
-		 * 
-		 * @return The document type according to vLab, indicating how the document relates to the item,
-		 *  such as "Original", "Raw" or "Text"
+		/* (non-Javadoc)
+		 * @see com.nicta.hls.vlabclient.VLabDocument#getType()
 		 */
 		public String getType() {
 			return fromJson.getType();
 		}
 		
-		/** Get the document size
-		 * 
-		 * @return A string representation of the document size, such as "1.8kB"
+		/* (non-Javadoc)
+		 * @see com.nicta.hls.vlabclient.VLabDocument#getSize()
 		 */
 		public String getSize() {
 			return fromJson.getSize();
 		}
 		
-		/** Get the raw document text 
-		 * 
-		 * @return The raw text of the document.
+		/* (non-Javadoc)
+		 * @see com.nicta.hls.vlabclient.VLabDocument#rawText()
 		 */
 		public String rawText() {
 			return getTextInvocBuilder(getRawTextUrl()).get(String.class);
@@ -197,7 +195,7 @@ public class VLabRestClient {
 	 * @return the item list object with the given ID
 	 * @throws Exception
 	 */
-	public ItemList getItemList(String itemListId) throws Exception {
+	public VLabItemList getItemList(String itemListId) throws Exception {
 		return getItemListFromUri(getItemListUri(itemListId));
 	}
 
@@ -208,7 +206,7 @@ public class VLabRestClient {
 	 * @throws Exception
 	 * @see {@link #getItemList(String)}
 	 */
-	public ItemList getItemListFromUri(String itemListUri) throws Exception {
+	public VLabItemList getItemListFromUri(String itemListUri) throws Exception {
 		return new ItemList(getJsonInvocBuilder(itemListUri).get(JsonItemList.class), itemListUri);
 	}
 
