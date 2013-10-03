@@ -147,6 +147,11 @@ public class VLabRestClient {
 		}
 	}
 	
+	/** A representation of an Item from a item list in the HCS vLab REST API
+	 * 
+	 * @author andrew.mackinlay
+	 *
+	 */
 	public class CatalogItem {
 		private JsonCatalogItem fromJson;
 		private String uri;
@@ -156,6 +161,7 @@ public class VLabRestClient {
 			this.uri = uri;
 		}
 		
+		/** Return the documents associated with this item */
 		public List<Document> documents() {
 			JsonDocument[] jsonDocs = fromJson.getDocuments();
 			List<Document> docs = new ArrayList<Document>(jsonDocs.length);
@@ -164,66 +170,136 @@ public class VLabRestClient {
 			return docs;
 		}
 		
+		/** Return the URI (a valid REST URI) from which this item was retrieved */
 		public String getUri() {
 			return uri;
 		}
 		
+		/** Get the URL at which the primary text of the item is stored;
+		 * 
+		 * Library users will probably be more interested in the {@link #primaryText()} method
+		 * which does the text retrieval automatically.
+		 * @return a URL storing the primary text
+		 */
 		public String getPrimaryTextUrl() {
 			return fromJson.getPrimaryTextUrl();
 		}
 		
+		/** Get the primary text of the item 
+		 * 
+		 * @return the primary text associated with an item
+		 */
 		public String primaryText() {
 			return getTextInvocBuilder(getPrimaryTextUrl()).get(String.class);
 		}
 		
+		/** Get the metadata associated with an item
+		 * 
+		 * @return a mapping from all metadata key names to metadata values
+		 */
 		public Map<String, String> getMetadata() {
 			return fromJson.getMetadata();
 		}
 	}
 
+	/** A class representing a 'document' (version of an item) in the HCSvLab API
+	 * 
+	 * @author andrew.mackinlay
+	 *
+	 */
 	public class Document {
 		private JsonDocument fromJson;
-//		private String uri;
 		
 		private Document(JsonDocument raw) {
 			fromJson = raw;
-//			this.uri = uri;
 		}
-
+		
+		/** Get the URL where the raw text is stored. 
+		 * 
+		 * The {@link #rawText()} method is probably more useful to end users
+		 * 
+		 * @return The URL from which the raw text can be retrieved
+		 */
 		public String getRawTextUrl() {
 			return fromJson.getUrl();
 		}
 		
+		/** Get the 'type' of the document
+		 * 
+		 * @return The document type according to vLab, indicating how the document relates to the item,
+		 *  such as "Original", "Raw" or "Text"
+		 */
 		public String getType() {
 			return fromJson.getType();
 		}
 		
+		/** Get the document size
+		 * 
+		 * @return A string representation of the document size, such as "1.8kB"
+		 */
 		public String getSize() {
 			return fromJson.getSize();
 		}
 		
+		/** Get the raw document text 
+		 * 
+		 * @return The raw text of the document.
+		 */
 		public String rawText() {
 			return getTextInvocBuilder(getRawTextUrl()).get(String.class);
 		}
 	
 	}
 
+	/** Return the URI of the item list given an ID. For end-users, {@link #getItemList()} is probably 
+	 *  more useful
+	 * 
+	 * @param itemListId the ID of the item list
+	 * @return a URI stored as a string
+	 */
 	public String getItemListUri(String itemListId) {
 		return String.format("%s/item_lists/%s.json", serverBaseUri, itemListId);
 	}
 
+	/** Get the item list with the supplied ID
+	 * 
+	 * @param itemListId the ID of the item list
+	 * @return the item list object with the given ID
+	 * @throws Exception
+	 */
 	public ItemList getItemList(String itemListId) throws Exception {
 		return getItemListFromUri(getItemListUri(itemListId));
 	}
 
+	/** Get the item list from the supplied rest URI
+	 * 
+	 * @param itemListUri the fully qualified URI for the REST API
+	 * @return the item list object with the given ID
+	 * @throws Exception
+	 * @see {@link #getItemList(String)}
+	 */
 	public ItemList getItemListFromUri(String itemListUri) throws Exception {
 		return new ItemList(getJsonInvocBuilder(itemListUri).get(JsonItemList.class), itemListUri);
 	}
 
+	/** Get the raw JSON for the item list from the supplied ID. Mostly useful for debugging
+	 * 
+	 * @param itemListId the ID of the item list
+	 * @return unformatted JSON from the HCS vLab REST server
+	 * @throws Exception
+	 * @see {@link #getItemList(String)}
+	 */
 	public String getItemListJson(String itemListId) throws Exception {
 		return getItemListJsonFromUri(getItemListUri(itemListId));
 	}
 	
+	/** Get the raw JSON for the item list from the supplied URI. Mostly useful for debugging
+	 * 
+	 * @param itemListUri the fully qualified URI for the REST API
+	 * @return unformatted JSON from the HCS vLab REST server
+	 * @throws Exception
+	 * @see {@link #getItemListJson(String)}
+	 */
 	public String getItemListJsonFromUri(String itemListUri) throws Exception {
 		return getJsonInvocBuilder(itemListUri).get(String.class);
 	}
