@@ -30,6 +30,6 @@ public interface VLabItemList {
 	public long numItems();
 
 	/** Fetch the items associated with this item list */
-	public List<CatalogItem> getCatalogItems();
+	public List<? extends VLabItem> getCatalogItems();
 
 }

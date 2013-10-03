@@ -78,7 +78,7 @@ public class RestClient {
 		/* (non-Javadoc)
 		 * @see com.nicta.hls.vlabclient.VLabItemList#getCatalogItems()
 		 */
-		public List<CatalogItem> getCatalogItems() {
+		public List<? extends VLabItem> getCatalogItems() {
 			List<CatalogItem> cis = new ArrayList<CatalogItem>();
 			for (String itemUri : itemUris()) {
 				JsonCatalogItem jci = getJsonInvocBuilder(itemUri).get(JsonCatalogItem.class);
