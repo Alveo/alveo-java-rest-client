@@ -5,7 +5,7 @@ import java.util.Map;
 import com.nicta.hls.vlabclient.VLabDocument;
 import com.nicta.hls.vlabclient.VLabItem;
 import com.nicta.hls.vlabclient.VLabItemList;
-import com.nicta.hls.vlabclient.VLabRestClient;
+import com.nicta.hls.vlabclient.RestClient;
 
 public class VLabRestClientExample {
 	public static void main(String[] args) {
@@ -13,7 +13,7 @@ public class VLabRestClientExample {
 		String apiKey = args[1];
 		String itemListId = args[2];
 
-		VLabRestClient client = new VLabRestClient(serverUri, apiKey);
+		RestClient client = new RestClient(serverUri, apiKey);
 		try {
 			System.out.println(client.getItemListJson(itemListId));
 			VLabItemList il = client.getItemList(itemListId);

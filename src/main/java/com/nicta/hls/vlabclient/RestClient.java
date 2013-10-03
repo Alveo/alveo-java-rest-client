@@ -11,7 +11,7 @@ import javax.ws.rs.core.MediaType;
 
 import static com.nicta.hls.vlabclient.JsonApi.*;
 
-public class VLabRestClient {
+public class RestClient {
 
 	private String serverBaseUri;
 	private String apiKey;
@@ -22,7 +22,7 @@ public class VLabRestClient {
 	 * @param serverBaseUri The base URI of the server to construct API calls to the JSON REST API.
 	 * @param apiKey The API key for the relevant user account, available from the HCS vLab web interface
 	 */
-	public VLabRestClient(String serverBaseUri, String apiKey) {
+	public RestClient(String serverBaseUri, String apiKey) {
 		this.serverBaseUri = serverBaseUri;
 		this.apiKey = apiKey;
 		client = ClientBuilder.newClient();
