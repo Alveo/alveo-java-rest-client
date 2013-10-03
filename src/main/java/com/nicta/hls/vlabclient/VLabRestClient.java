@@ -65,13 +65,7 @@ public class VLabRestClient {
 		public long numItems() {
 			return fromJson.getNumItems();
 		}
-//		
-//		private List<JsonCatalogItem> getJsonCatalogItems() {
-//			List<JsonCatalogItem> jcis = new ArrayList<JsonCatalogItem>(numItems());
-//				jcis.add(getJsonInvocBuilder(itemUri).get(JsonCatalogItem.class));
-//			return jcis;
-//		}
-
+		
 		/** Fetch the items associated with this item list */
 		public List<CatalogItem> getCatalogItems() {
 			List<CatalogItem> cis = new ArrayList<CatalogItem>();
