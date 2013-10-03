@@ -102,7 +102,7 @@ public class VLabRestClient {
 		private JsonItemList fromJson;
 		private String uri;
 		
-		public ItemList(JsonItemList raw, String uri) {
+		private ItemList(JsonItemList raw, String uri) {
 			fromJson = raw;
 			this.uri = uri;
 		}
@@ -151,21 +151,61 @@ public class VLabRestClient {
 		private JsonCatalogItem fromJson;
 		private String uri;
 		
-		public CatalogItem(JsonCatalogItem raw, String uri) {
+		private CatalogItem(JsonCatalogItem raw, String uri) {
 			fromJson = raw;
 			this.uri = uri;
 		}
 		
-//		public List<Document> documents() {
-//		}
+		public List<Document> documents() {
+			JsonDocument[] jsonDocs = fromJson.getDocuments();
+			List<Document> docs = new ArrayList<Document>(jsonDocs.length);
+			for (JsonDocument jd : jsonDocs)
+				docs.add(new Document(jd));
+			return docs;
+		}
 		
 		public String getUri() {
 			return uri;
 		}
 		
-		public String primaryText() {
-			return getTextInvocBuilder(fromJson.getPrimaryTextUrl()).get(String.class);
+		public String getPrimaryTextUrl() {
+			return fromJson.getPrimaryTextUrl();
 		}
+		
+		public String primaryText() {
+			return getTextInvocBuilder(getPrimaryTextUrl()).get(String.class);
+		}
+		
+		public Map<String, String> getMetadata() {
+			return fromJson.getMetadata();
+		}
+	}
+
+	public class Document {
+		private JsonDocument fromJson;
+//		private String uri;
+		
+		private Document(JsonDocument raw) {
+			fromJson = raw;
+//			this.uri = uri;
+		}
+
+		public String getRawTextUrl() {
+			return fromJson.getUrl();
+		}
+		
+		public String getType() {
+			return fromJson.getType();
+		}
+		
+		public String getSize() {
+			return fromJson.getSize();
+		}
+		
+		public String rawText() {
+			return getTextInvocBuilder(getRawTextUrl()).get(String.class);
+		}
+	
 	}
 
 	public String getItemListUri(String itemListId) {
@@ -217,8 +257,23 @@ public class VLabRestClient {
 			ItemList il = client.getItemList(itemListId);
 			System.out.println(String.format("Found %d items", il.numItems())); 
 			for (CatalogItem ci : il.getCatalogItems()) {
-				System.out.println("\n" + ci.getUri());
-				System.out.println(ci.primaryText());
+				System.out.println("\nURI:" + ci.getUri());
+				System.out.println("\nPRIMARY TEXT:\n" + ci.primaryText());
+				System.out.println("\nMETADATA:");
+				for (Map.Entry<String, String> entry : ci.getMetadata().entrySet()) {
+					System.out.println(entry.getKey() + ": " + entry.getValue());
+				}
+				System.out.println("\nDOCS:");
+				for (Document doc : ci.documents()) {
+					System.out.println("\tTEXT URL: " + doc.getRawTextUrl());
+					System.out.println("\tSIZE: " + doc.getSize());
+					System.out.println("\tTYPE: " + doc.getType());
+					String text = doc.rawText();
+					if (text.length() > 5000) 
+						text = text.substring(0, 3000) + "…";
+					System.out.println("\tCONTENT: " + text);
+					System.out.println("\t==================");
+				}
 			}
 		} catch (Exception e) {
 			throw new RuntimeException(e);
