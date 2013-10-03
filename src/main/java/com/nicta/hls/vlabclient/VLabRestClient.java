@@ -9,9 +9,7 @@ import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.Invocation;
 import javax.ws.rs.core.MediaType;
 
-import org.codehaus.jackson.annotate.JsonAnySetter;
-import org.codehaus.jackson.annotate.JsonProperty;
-import org.glassfish.jersey.jackson.JacksonFeature;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 class JsonItemList {
 	public String getName() {
@@ -24,11 +22,6 @@ class JsonItemList {
 
 	public String[] getItems() {
 		return items;
-	}
-	
-	@JsonAnySetter
-	public void handleUnknown(String key, Object value) {
-		System.err.println("Unknown key: " +  key);
 	}
 
 	private String name;
@@ -97,7 +90,6 @@ public class VLabRestClient {
 		this.serverBaseUri = serverBaseUri;
 		this.apiKey = apiKey;
 		client = ClientBuilder.newClient();
-		client.register(JacksonFeature.class);
 	}
 
 	/** A representation of an HCS vLab item list. Modelled fairly closely on the JSON REST model,
