@@ -27,9 +27,9 @@ public interface VLabItemList {
 	public String name();
 
 	/** Return the number of items in the item list */
-	public long numItems();
+	public int numItems();
 
 	/** Fetch the items associated with this item list */
-	public List<? extends VLabItem> getCatalogItems();
+	public List<VLabItem> getCatalogItems();
 
 }

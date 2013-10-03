@@ -71,15 +71,15 @@ public class RestClient {
 		/* (non-Javadoc)
 		 * @see com.nicta.hls.vlabclient.VLabItemList#numItems()
 		 */
-		public long numItems() {
+		public int numItems() {
 			return fromJson.getNumItems();
 		}
 		
 		/* (non-Javadoc)
 		 * @see com.nicta.hls.vlabclient.VLabItemList#getCatalogItems()
 		 */
-		public List<? extends VLabItem> getCatalogItems() {
-			List<CatalogItem> cis = new ArrayList<CatalogItem>();
+		public List<VLabItem> getCatalogItems() {
+			List<VLabItem> cis = new ArrayList<VLabItem>();
 			for (String itemUri : itemUris()) {
 				JsonCatalogItem jci = getJsonInvocBuilder(itemUri).get(JsonCatalogItem.class);
 				cis.add(new CatalogItem(jci, itemUri));
