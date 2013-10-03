@@ -11,6 +11,11 @@ import javax.ws.rs.core.MediaType;
 
 import static com.nicta.hls.vlabclient.JsonApi.*;
 
+/** Use this. The primary class to use to interact with the HCS vLab REST API
+ * 
+ * @author andrew.mackinlay
+ *
+ */
 public class RestClient {
 
 	private String serverBaseUri;
