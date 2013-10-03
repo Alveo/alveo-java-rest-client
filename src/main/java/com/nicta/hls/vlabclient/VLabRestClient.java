@@ -9,71 +9,7 @@ import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.Invocation;
 import javax.ws.rs.core.MediaType;
 
-import com.fasterxml.jackson.annotation.JsonProperty;
-
-class JsonItemList {
-	public String getName() {
-		return name;
-	}
-
-	public int getNumItems() {
-		return numItems;
-	}
-
-	public String[] getItems() {
-		return items;
-	}
-
-	private String name;
-	
-	@JsonProperty(value="num_items")
-	private int numItems;
-	
-	private String[] items;
-}
-
-class JsonCatalogItem {
-	@JsonProperty(value = "catalog_url")
-	private String catalogUrl;
-	
-	private Map<String, String> metadata;
-	
-	@JsonProperty(value = "primary_text_url")
-	private String primaryTextUrl;
-	
-	@JsonProperty(value = "annotations_url")
-	private String annotationsUrl;
-	
-	private JsonDocument[] documents;
-
-	public String getCatalogUrl() {
-		return catalogUrl;
-	}
-	public Map<String, String> getMetadata() {
-		return metadata;
-	}
-	public String getPrimaryTextUrl() {
-		return primaryTextUrl;
-	}
-	public JsonDocument[] getDocuments() {
-		return documents;
-	}
-}
-
-class JsonDocument {
-	private String url;
-	private String type;
-	private String size;
-	public String getUrl() {
-		return url;
-	}
-	public String getType() {
-		return type;
-	}
-	public String getSize() {
-		return size;
-	}
-}
+import static com.nicta.hls.vlabclient.JsonApi.*;
 
 public class VLabRestClient {
 
