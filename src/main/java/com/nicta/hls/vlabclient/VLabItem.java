@@ -37,5 +37,19 @@ public interface VLabItem {
 	 * @return a mapping from all metadata key names to metadata values
 	 */
 	public Map<String, String> getMetadata();
+	
+	/** Get the (possibly empty) list of association annotations.
+	 * 
+	 *  This is simply a shortcut for users who do not care about the
+	 *  extra metadata attached to the annotations (which will often be true),
+	 *  which is equivalent to calling {@link VLabAnnotationGroup#getAnnotations()} on
+	 *  the result of {@link #getAnnotationGroup()}*/
+	public List<VLabAnnotation> getAnnotations();
+	
+	/** Return an AnnotationGroup object, from which metadata and annotations
+	 * can be retrieved
+	 * @return
+	 */
+	public VLabAnnotationGroup getAnnotationGroup();
 
 }

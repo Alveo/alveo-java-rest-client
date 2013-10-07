@@ -2,6 +2,7 @@ package com.nicta.hls.vlabclient.examples;
 
 import java.util.Map;
 
+import com.nicta.hls.vlabclient.VLabAnnotation;
 import com.nicta.hls.vlabclient.VLabDocument;
 import com.nicta.hls.vlabclient.VLabItem;
 import com.nicta.hls.vlabclient.VLabItemList;
@@ -36,6 +37,10 @@ public class RestClientExample {
 					System.out.println("\tCONTENT: " + text);
 					System.out.println("\t==================");
 				}
+				System.out.println("\nANNS:");
+				for (VLabAnnotation ann : ci.getAnnotations()) 
+					System.out.println(String.format("\t%s(%s)@<%1.1f:%1.1f>", ann.getType(), ann.getLabel(),
+							ann.getStart(), ann.getEnd()));
 			}
 		} catch (Exception e) {
 			throw new RuntimeException(e);
