@@ -7,7 +7,20 @@
 	<packaging>jar</packaging>
 
 	<name>vlabclient</name>
-	<url>http://maven.apache.org</url>
+	<url>http://opennicta.com/home/health/vlabclient</url>
+
+	<organization>
+		<name>National ICT Australia</name>
+		<url>http://nicta.com.au/</url>
+	</organization>
+	<developers>
+		<developer>
+			<name>Andrew MacKinlay</name>
+			<email>andrew.mackinlay@nicta.com.au</email>
+		</developer>
+	</developers>
+	<inceptionYear>2013</inceptionYear>
+	<description>Java wrapper for the HCS vLab REST API</description>
 
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
