@@ -300,7 +300,7 @@ public class RestClient {
 	 * @return a URI stored as a string
 	 */
 	public String getItemListUri(String itemListId) {
-		return String.format("%s/item_lists/%s.json", serverBaseUri, itemListId);
+		return String.format("%s/item_lists/%s", serverBaseUri, itemListId);
 	}
 
 	/**
