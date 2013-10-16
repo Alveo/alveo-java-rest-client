@@ -1,4 +1,4 @@
-package com.nicta.hls.vlabclient;
+package com.nicta.vlabclient;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -9,9 +9,9 @@ import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.Invocation;
 import javax.ws.rs.core.MediaType;
 
-import com.nicta.hls.vlabclient.JsonApi.JsonAnnotationGroup;
+import com.nicta.vlabclient.JsonApi.JsonAnnotationGroup;
 
-import static com.nicta.hls.vlabclient.JsonApi.*;
+import static com.nicta.vlabclient.JsonApi.*;
 
 /**
  * Use this. The primary class to use to interact with the HCS vLab REST API
@@ -60,7 +60,7 @@ public class RestClient {
 		/*
 		 * (non-Javadoc)
 		 * 
-		 * @see com.nicta.hls.vlabclient.VLabItemList#getUri()
+		 * @see com.nicta.vlabclient.VLabItemList#getUri()
 		 */
 		public String getUri() {
 			return uri;
@@ -69,7 +69,7 @@ public class RestClient {
 		/*
 		 * (non-Javadoc)
 		 * 
-		 * @see com.nicta.hls.vlabclient.VLabItemList#itemUris()
+		 * @see com.nicta.vlabclient.VLabItemList#itemUris()
 		 */
 		public String[] itemUris() {
 			return fromJson.getItems();
@@ -78,7 +78,7 @@ public class RestClient {
 		/*
 		 * (non-Javadoc)
 		 * 
-		 * @see com.nicta.hls.vlabclient.VLabItemList#name()
+		 * @see com.nicta.vlabclient.VLabItemList#name()
 		 */
 		public String name() {
 			return fromJson.getName();
@@ -87,7 +87,7 @@ public class RestClient {
 		/*
 		 * (non-Javadoc)
 		 * 
-		 * @see com.nicta.hls.vlabclient.VLabItemList#numItems()
+		 * @see com.nicta.vlabclient.VLabItemList#numItems()
 		 */
 		public int numItems() {
 			return fromJson.getNumItems();
@@ -96,7 +96,7 @@ public class RestClient {
 		/*
 		 * (non-Javadoc)
 		 * 
-		 * @see com.nicta.hls.vlabclient.VLabItemList#getCatalogItems()
+		 * @see com.nicta.vlabclient.VLabItemList#getCatalogItems()
 		 */
 		public List<VLabItem> getCatalogItems() {
 			List<VLabItem> cis = new ArrayList<VLabItem>();
@@ -126,7 +126,7 @@ public class RestClient {
 		/*
 		 * (non-Javadoc)
 		 * 
-		 * @see com.nicta.hls.vlabclient.VLabItem#documents()
+		 * @see com.nicta.vlabclient.VLabItem#documents()
 		 */
 		public List<Document> documents() {
 			JsonDocument[] jsonDocs = fromJson.getDocuments();
@@ -139,7 +139,7 @@ public class RestClient {
 		/*
 		 * (non-Javadoc)
 		 * 
-		 * @see com.nicta.hls.vlabclient.VLabItem#getUri()
+		 * @see com.nicta.vlabclient.VLabItem#getUri()
 		 */
 		public String getUri() {
 			return uri;
@@ -148,7 +148,7 @@ public class RestClient {
 		/*
 		 * (non-Javadoc)
 		 * 
-		 * @see com.nicta.hls.vlabclient.VLabItem#getPrimaryTextUrl()
+		 * @see com.nicta.vlabclient.VLabItem#getPrimaryTextUrl()
 		 */
 		public String getPrimaryTextUrl() {
 			return fromJson.getPrimaryTextUrl();
@@ -157,7 +157,7 @@ public class RestClient {
 		/*
 		 * (non-Javadoc)
 		 * 
-		 * @see com.nicta.hls.vlabclient.VLabItem#primaryText()
+		 * @see com.nicta.vlabclient.VLabItem#primaryText()
 		 */
 		public String primaryText() {
 			return getTextInvocBuilder(getPrimaryTextUrl()).get(String.class);
@@ -166,7 +166,7 @@ public class RestClient {
 		/*
 		 * (non-Javadoc)
 		 * 
-		 * @see com.nicta.hls.vlabclient.VLabItem#getMetadata()
+		 * @see com.nicta.vlabclient.VLabItem#getMetadata()
 		 */
 		public Map<String, String> getMetadata() {
 			return fromJson.getMetadata();
@@ -198,7 +198,7 @@ public class RestClient {
 		/*
 		 * (non-Javadoc)
 		 * 
-		 * @see com.nicta.hls.vlabclient.VLabDocument#getRawTextUrl()
+		 * @see com.nicta.vlabclient.VLabDocument#getRawTextUrl()
 		 */
 		public String getRawTextUrl() {
 			return fromJson.getUrl();
@@ -207,7 +207,7 @@ public class RestClient {
 		/*
 		 * (non-Javadoc)
 		 * 
-		 * @see com.nicta.hls.vlabclient.VLabDocument#getType()
+		 * @see com.nicta.vlabclient.VLabDocument#getType()
 		 */
 		public String getType() {
 			return fromJson.getType();
@@ -216,7 +216,7 @@ public class RestClient {
 		/*
 		 * (non-Javadoc)
 		 * 
-		 * @see com.nicta.hls.vlabclient.VLabDocument#getSize()
+		 * @see com.nicta.vlabclient.VLabDocument#getSize()
 		 */
 		public String getSize() {
 			return fromJson.getSize();
@@ -225,7 +225,7 @@ public class RestClient {
 		/*
 		 * (non-Javadoc)
 		 * 
-		 * @see com.nicta.hls.vlabclient.VLabDocument#rawText()
+		 * @see com.nicta.vlabclient.VLabDocument#rawText()
 		 */
 		public String rawText() {
 			return getTextInvocBuilder(getRawTextUrl()).get(String.class);

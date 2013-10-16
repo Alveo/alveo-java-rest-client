@@ -1,9 +1,9 @@
-package com.nicta.hls.vlabclient;
+package com.nicta.vlabclient;
 
 import java.util.List;
 import java.util.Map;
 
-import com.nicta.hls.vlabclient.RestClient.Document;
+import com.nicta.vlabclient.RestClient.Document;
 
 /** A representation of an Item from a item list in the HCS vLab REST API
  * 

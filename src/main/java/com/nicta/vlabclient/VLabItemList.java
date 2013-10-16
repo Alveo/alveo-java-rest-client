@@ -1,8 +1,8 @@
-package com.nicta.hls.vlabclient;
+package com.nicta.vlabclient;
 
 import java.util.List;
 
-import com.nicta.hls.vlabclient.RestClient.CatalogItem;
+import com.nicta.vlabclient.RestClient.CatalogItem;
 
 /** A representation of an HCS vLab item list. Modelled fairly closely on the JSON REST model,
  * but at a slightly higher level, with a number of convenience methods to enable 

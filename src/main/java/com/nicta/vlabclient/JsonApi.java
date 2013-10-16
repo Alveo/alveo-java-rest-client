@@ -1,4 +1,4 @@
-package com.nicta.hls.vlabclient;
+package com.nicta.vlabclient;
 
 import java.util.Map;
 

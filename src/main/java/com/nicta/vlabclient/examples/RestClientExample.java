@@ -1,12 +1,12 @@
-package com.nicta.hls.vlabclient.examples;
+package com.nicta.vlabclient.examples;
 
 import java.util.Map;
 
-import com.nicta.hls.vlabclient.VLabAnnotation;
-import com.nicta.hls.vlabclient.VLabDocument;
-import com.nicta.hls.vlabclient.VLabItem;
-import com.nicta.hls.vlabclient.VLabItemList;
-import com.nicta.hls.vlabclient.RestClient;
+import com.nicta.vlabclient.RestClient;
+import com.nicta.vlabclient.VLabAnnotation;
+import com.nicta.vlabclient.VLabDocument;
+import com.nicta.vlabclient.VLabItem;
+import com.nicta.vlabclient.VLabItemList;
 
 public class RestClientExample {
 	public static void main(String[] args) {
