@@ -14,9 +14,9 @@ import com.nicta.vlabclient.JsonApi.JsonAnnotationGroup;
 import static com.nicta.vlabclient.JsonApi.*;
 
 /**
- * Use this. The primary class to use to interact with the HCS vLab REST API
+ * The primary class to use to interact with the HCS vLab REST API - use this to retrieve items
  * 
- * @author andrew.mackinlay
+ * @author Andrew MacKinlay
  * 
  */
 public class RestClient {
