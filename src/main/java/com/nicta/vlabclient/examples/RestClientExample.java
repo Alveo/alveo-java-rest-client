@@ -3,10 +3,10 @@ package com.nicta.vlabclient.examples;
 import java.util.Map;
 
 import com.nicta.vlabclient.RestClient;
-import com.nicta.vlabclient.VLabAnnotation;
-import com.nicta.vlabclient.VLabDocument;
-import com.nicta.vlabclient.VLabItem;
-import com.nicta.vlabclient.VLabItemList;
+import com.nicta.vlabclient.Annotation;
+import com.nicta.vlabclient.Document;
+import com.nicta.vlabclient.Item;
+import com.nicta.vlabclient.ItemList;
 
 public class RestClientExample {
 	public static void main(String[] args) {
@@ -17,9 +17,9 @@ public class RestClientExample {
 		RestClient client = new RestClient(serverUri, apiKey);
 		try {
 			System.out.println(client.getItemListJson(itemListId));
-			VLabItemList il = client.getItemList(itemListId);
+			ItemList il = client.getItemList(itemListId);
 			System.out.println(String.format("Found %d items", il.numItems())); 
-			for (VLabItem ci : il.getCatalogItems()) {
+			for (Item ci : il.getCatalogItems()) {
 				System.out.println("\nURI:" + ci.getUri());
 				System.out.println("\nPRIMARY TEXT:\n" + ci.primaryText());
 				System.out.println("\nMETADATA:");
@@ -27,7 +27,7 @@ public class RestClientExample {
 					System.out.println(entry.getKey() + ": " + entry.getValue());
 				}
 				System.out.println("\nDOCS:");
-				for (VLabDocument doc : ci.documents()) {
+				for (Document doc : ci.documents()) {
 					System.out.println("\tTEXT URL: " + doc.getRawTextUrl());
 					System.out.println("\tSIZE: " + doc.getSize());
 					System.out.println("\tTYPE: " + doc.getType());
@@ -38,7 +38,7 @@ public class RestClientExample {
 					System.out.println("\t==================");
 				}
 				System.out.println("\nANNS:");
-				for (VLabAnnotation ann : ci.getAnnotations()) 
+				for (Annotation ann : ci.getAnnotations()) 
 					System.out.println(String.format("\t%s(%s)@<%1.1f:%1.1f>", ann.getType(), ann.getLabel(),
 							ann.getStart(), ann.getEnd()));
 			}

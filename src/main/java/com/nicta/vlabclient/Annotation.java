@@ -1,16 +1,11 @@
 package com.nicta.vlabclient;
 
-import java.util.List;
-import java.util.Map;
-
-import com.nicta.vlabclient.RestClient.Document;
-
 /** A representation of an Item from a item list in the HCS vLab REST API
  * 
  * @author andrew.mackinlay
  *
  */
-public interface VLabAnnotation {
+public interface Annotation {
 
 	/** Return the type of the annotation (such as "laughter", "speaker") according to HCS vLab */
 	public String getType();

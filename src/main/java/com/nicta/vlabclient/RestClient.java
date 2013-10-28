@@ -48,11 +48,11 @@ public class RestClient {
 	 * @author andrew.mackinlay
 	 * 
 	 */
-	public class ItemList implements VLabItemList {
+	private class ItemListImpl implements ItemList {
 		private JsonItemList fromJson;
 		private String uri;
 
-		private ItemList(JsonItemList raw, String uri) {
+		private ItemListImpl(JsonItemList raw, String uri) {
 			fromJson = raw;
 			this.uri = uri;
 		}
@@ -60,7 +60,7 @@ public class RestClient {
 		/*
 		 * (non-Javadoc)
 		 * 
-		 * @see com.nicta.vlabclient.VLabItemList#getUri()
+		 * @see com.nicta.vlabclient.ItemList#getUri()
 		 */
 		public String getUri() {
 			return uri;
@@ -69,7 +69,7 @@ public class RestClient {
 		/*
 		 * (non-Javadoc)
 		 * 
-		 * @see com.nicta.vlabclient.VLabItemList#itemUris()
+		 * @see com.nicta.vlabclient.ItemList#itemUris()
 		 */
 		public String[] itemUris() {
 			return fromJson.getItems();
@@ -78,7 +78,7 @@ public class RestClient {
 		/*
 		 * (non-Javadoc)
 		 * 
-		 * @see com.nicta.vlabclient.VLabItemList#name()
+		 * @see com.nicta.vlabclient.ItemList#name()
 		 */
 		public String name() {
 			return fromJson.getName();
@@ -87,7 +87,7 @@ public class RestClient {
 		/*
 		 * (non-Javadoc)
 		 * 
-		 * @see com.nicta.vlabclient.VLabItemList#numItems()
+		 * @see com.nicta.vlabclient.ItemList#numItems()
 		 */
 		public int numItems() {
 			return fromJson.getNumItems();
@@ -96,13 +96,13 @@ public class RestClient {
 		/*
 		 * (non-Javadoc)
 		 * 
-		 * @see com.nicta.vlabclient.VLabItemList#getCatalogItems()
+		 * @see com.nicta.vlabclient.ItemList#getCatalogItems()
 		 */
-		public List<VLabItem> getCatalogItems() {
-			List<VLabItem> cis = new ArrayList<VLabItem>();
+		public List<Item> getCatalogItems() {
+			List<Item> cis = new ArrayList<Item>();
 			for (String itemUri : itemUris()) {
 				JsonCatalogItem jci = getJsonInvocBuilder(itemUri).get(JsonCatalogItem.class);
-				cis.add(new CatalogItem(jci, itemUri));
+				cis.add(new ItemImpl(jci, itemUri));
 			}
 			return cis;
 		}
@@ -114,11 +114,11 @@ public class RestClient {
 	 * @author andrew.mackinlay
 	 * 
 	 */
-	public class CatalogItem implements VLabItem {
+	private class ItemImpl implements Item {
 		private JsonCatalogItem fromJson;
 		private String uri;
 
-		private CatalogItem(JsonCatalogItem raw, String uri) {
+		private ItemImpl(JsonCatalogItem raw, String uri) {
 			fromJson = raw;
 			this.uri = uri;
 		}
@@ -126,20 +126,20 @@ public class RestClient {
 		/*
 		 * (non-Javadoc)
 		 * 
-		 * @see com.nicta.vlabclient.VLabItem#documents()
+		 * @see com.nicta.vlabclient.Item#documents()
 		 */
 		public List<Document> documents() {
 			JsonDocument[] jsonDocs = fromJson.getDocuments();
 			List<Document> docs = new ArrayList<Document>(jsonDocs.length);
 			for (JsonDocument jd : jsonDocs)
-				docs.add(new Document(jd));
+				docs.add(new DocumentImpl(jd));
 			return docs;
 		}
 
 		/*
 		 * (non-Javadoc)
 		 * 
-		 * @see com.nicta.vlabclient.VLabItem#getUri()
+		 * @see com.nicta.vlabclient.Item#getUri()
 		 */
 		public String getUri() {
 			return uri;
@@ -148,7 +148,7 @@ public class RestClient {
 		/*
 		 * (non-Javadoc)
 		 * 
-		 * @see com.nicta.vlabclient.VLabItem#getPrimaryTextUrl()
+		 * @see com.nicta.vlabclient.Item#getPrimaryTextUrl()
 		 */
 		public String getPrimaryTextUrl() {
 			return fromJson.getPrimaryTextUrl();
@@ -157,7 +157,7 @@ public class RestClient {
 		/*
 		 * (non-Javadoc)
 		 * 
-		 * @see com.nicta.vlabclient.VLabItem#primaryText()
+		 * @see com.nicta.vlabclient.Item#primaryText()
 		 */
 		public String primaryText() {
 			return getTextInvocBuilder(getPrimaryTextUrl()).get(String.class);
@@ -166,18 +166,18 @@ public class RestClient {
 		/*
 		 * (non-Javadoc)
 		 * 
-		 * @see com.nicta.vlabclient.VLabItem#getMetadata()
+		 * @see com.nicta.vlabclient.Item#getMetadata()
 		 */
 		public Map<String, String> getMetadata() {
 			return fromJson.getMetadata();
 		}
 		
-		public VLabAnnotationGroup getAnnotationGroup() {
+		public AnnotationGroup getAnnotationGroup() {
 			String url = fromJson.getAnnotationsUrl();
-			return new AnnotationGroup(getJsonInvocBuilder(url).get(JsonAnnotationGroup.class), url);
+			return new AnnotationGroupImpl(getJsonInvocBuilder(url).get(JsonAnnotationGroup.class), url);
 		}
 
-		public List<VLabAnnotation> getAnnotations() {
+		public List<Annotation> getAnnotations() {
 			return getAnnotationGroup().getAnnotations();
 		}
 	}
@@ -188,17 +188,17 @@ public class RestClient {
 	 * @author andrew.mackinlay
 	 * 
 	 */
-	public class Document implements VLabDocument {
+	private class DocumentImpl implements Document {
 		private JsonDocument fromJson;
 
-		private Document(JsonDocument raw) {
+		private DocumentImpl(JsonDocument raw) {
 			fromJson = raw;
 		}
 
 		/*
 		 * (non-Javadoc)
 		 * 
-		 * @see com.nicta.vlabclient.VLabDocument#getRawTextUrl()
+		 * @see com.nicta.vlabclient.Document#getRawTextUrl()
 		 */
 		public String getRawTextUrl() {
 			return fromJson.getUrl();
@@ -207,7 +207,7 @@ public class RestClient {
 		/*
 		 * (non-Javadoc)
 		 * 
-		 * @see com.nicta.vlabclient.VLabDocument#getType()
+		 * @see com.nicta.vlabclient.Document#getType()
 		 */
 		public String getType() {
 			return fromJson.getType();
@@ -216,7 +216,7 @@ public class RestClient {
 		/*
 		 * (non-Javadoc)
 		 * 
-		 * @see com.nicta.vlabclient.VLabDocument#getSize()
+		 * @see com.nicta.vlabclient.Document#getSize()
 		 */
 		public String getSize() {
 			return fromJson.getSize();
@@ -225,18 +225,18 @@ public class RestClient {
 		/*
 		 * (non-Javadoc)
 		 * 
-		 * @see com.nicta.vlabclient.VLabDocument#rawText()
+		 * @see com.nicta.vlabclient.Document#rawText()
 		 */
 		public String rawText() {
 			return getTextInvocBuilder(getRawTextUrl()).get(String.class);
 		}
 	}
 	
-	public class AnnotationGroup implements VLabAnnotationGroup {
+	private class AnnotationGroupImpl implements AnnotationGroup {
 		private String uri;
 		private JsonAnnotationGroup fromJson;
 
-		private AnnotationGroup(JsonAnnotationGroup raw, String uri) {
+		private AnnotationGroupImpl(JsonAnnotationGroup raw, String uri) {
 			this.uri = uri;
 			fromJson = raw;
 		}
@@ -257,19 +257,19 @@ public class RestClient {
 			return fromJson.getAnnotationsFound();
 		}
 
-		public List<VLabAnnotation> getAnnotations() {
-			List<VLabAnnotation> anns = new ArrayList<VLabAnnotation>();
+		public List<Annotation> getAnnotations() {
+			List<Annotation> anns = new ArrayList<Annotation>();
 			for (JsonAnnotation ja : fromJson.getAnnotations()) 
-				anns.add(new Annotation(ja));
+				anns.add(new AnnotationImpl(ja));
 			return anns;
 		}
 	}
 
-	public class Annotation implements VLabAnnotation {
+	private class AnnotationImpl implements Annotation {
 
 		private JsonAnnotation fromJson;
 
-		private Annotation(JsonAnnotation raw) {
+		private AnnotationImpl(JsonAnnotation raw) {
 			fromJson = raw;
 		}
 
@@ -311,7 +311,7 @@ public class RestClient {
 	 * @return the item list object with the given ID
 	 * @throws Exception
 	 */
-	public VLabItemList getItemList(String itemListId) throws Exception {
+	public ItemList getItemList(String itemListId) throws Exception {
 		return getItemListFromUri(getItemListUri(itemListId));
 	}
 
@@ -324,8 +324,8 @@ public class RestClient {
 	 * @throws Exception
 	 * @see {@link #getItemList(String)}
 	 */
-	public VLabItemList getItemListFromUri(String itemListUri) throws Exception {
-		return new ItemList(getJsonInvocBuilder(itemListUri).get(JsonItemList.class), itemListUri);
+	public ItemList getItemListFromUri(String itemListUri) throws Exception {
+		return new ItemListImpl(getJsonInvocBuilder(itemListUri).get(JsonItemList.class), itemListUri);
 	}
 
 	/**

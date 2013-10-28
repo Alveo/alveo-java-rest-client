@@ -10,7 +10,7 @@ import com.nicta.vlabclient.RestClient.Document;
  * @author andrew.mackinlay
  *
  */
-public interface VLabAnnotationGroup {
+public interface AnnotationGroup {
 
 	/** Return the URI from which the annotation group was retrieved */
 	public String getUri();
@@ -28,6 +28,6 @@ public interface VLabAnnotationGroup {
 
 	/** Return annotations from this group (likely to be the method you want)
 	 */
-	public List<VLabAnnotation> getAnnotations();
+	public List<Annotation> getAnnotations();
 
 }

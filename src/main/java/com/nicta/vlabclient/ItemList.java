@@ -2,15 +2,13 @@ package com.nicta.vlabclient;
 
 import java.util.List;
 
-import com.nicta.vlabclient.RestClient.CatalogItem;
-
 /** A representation of an HCS vLab item list. Modelled fairly closely on the JSON REST model,
  * but at a slightly higher level, with a number of convenience methods to enable 
  * easier retrieval of related objects, for example
  * @author andrew.mackinlay
  *
  */
-public interface VLabItemList {
+public interface ItemList {
 
 	/** Get the URI which was used to retrieve this item from the REST API */
 	public String getUri();
@@ -30,6 +28,6 @@ public interface VLabItemList {
 	public int numItems();
 
 	/** Fetch the items associated with this item list */
-	public List<VLabItem> getCatalogItems();
+	public List<Item> getCatalogItems();
 
 }

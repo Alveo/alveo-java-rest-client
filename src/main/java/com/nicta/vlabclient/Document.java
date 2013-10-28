@@ -5,7 +5,7 @@ package com.nicta.vlabclient;
  * @author andrew.mackinlay
  *
  */
-public interface VLabDocument {
+public interface Document {
 
 	/** Get the URL where the raw text is stored. 
 	 * 

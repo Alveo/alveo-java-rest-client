@@ -3,14 +3,12 @@ package com.nicta.vlabclient;
 import java.util.List;
 import java.util.Map;
 
-import com.nicta.vlabclient.RestClient.Document;
-
 /** A representation of an Item from a item list in the HCS vLab REST API
  * 
  * @author andrew.mackinlay
  *
  */
-public interface VLabItem {
+public interface Item {
 
 	/** Return the documents associated with this item */
 	public List<Document> documents();
@@ -42,14 +40,14 @@ public interface VLabItem {
 	 * 
 	 *  This is simply a shortcut for users who do not care about the
 	 *  extra metadata attached to the annotations (which will often be true),
-	 *  which is equivalent to calling {@link VLabAnnotationGroup#getAnnotations()} on
+	 *  which is equivalent to calling {@link AnnotationGroup#getAnnotations()} on
 	 *  the result of {@link #getAnnotationGroup()}*/
-	public List<VLabAnnotation> getAnnotations();
+	public List<Annotation> getAnnotations();
 	
 	/** Return an AnnotationGroup object, from which metadata and annotations
 	 * can be retrieved
 	 * @return
 	 */
-	public VLabAnnotationGroup getAnnotationGroup();
+	public AnnotationGroup getAnnotationGroup();
 
 }
