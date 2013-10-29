@@ -3,8 +3,6 @@ package com.nicta.vlabclient.entity;
 import java.util.List;
 import java.util.Map;
 
-import com.nicta.vlabclient.RestClient.Document;
-
 /** A representation of an Item from a item list in the HCS vLab REST API
  * 
  * @author andrew.mackinlay
