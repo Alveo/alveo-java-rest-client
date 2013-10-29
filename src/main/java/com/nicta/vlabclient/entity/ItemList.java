@@ -1,4 +1,4 @@
-package com.nicta.vlabclient;
+package com.nicta.vlabclient.entity;
 
 import java.util.List;
 

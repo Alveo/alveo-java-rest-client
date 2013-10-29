@@ -10,6 +10,11 @@ import javax.ws.rs.client.Invocation;
 import javax.ws.rs.core.MediaType;
 
 import com.nicta.vlabclient.JsonApi.JsonAnnotationGroup;
+import com.nicta.vlabclient.entity.Annotation;
+import com.nicta.vlabclient.entity.AnnotationGroup;
+import com.nicta.vlabclient.entity.Document;
+import com.nicta.vlabclient.entity.Item;
+import com.nicta.vlabclient.entity.ItemList;
 
 import static com.nicta.vlabclient.JsonApi.*;
 

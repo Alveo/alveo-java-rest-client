@@ -1,4 +1,4 @@
-package com.nicta.vlabclient;
+package com.nicta.vlabclient.entity;
 
 /** A representation of a 'document' (version of an item) in the HCSvLab API
  * 

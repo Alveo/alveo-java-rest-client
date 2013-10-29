@@ -3,10 +3,10 @@ package com.nicta.vlabclient.examples;
 import java.util.Map;
 
 import com.nicta.vlabclient.RestClient;
-import com.nicta.vlabclient.Annotation;
-import com.nicta.vlabclient.Document;
-import com.nicta.vlabclient.Item;
-import com.nicta.vlabclient.ItemList;
+import com.nicta.vlabclient.entity.Annotation;
+import com.nicta.vlabclient.entity.Document;
+import com.nicta.vlabclient.entity.Item;
+import com.nicta.vlabclient.entity.ItemList;
 
 public class RestClientExample {
 	public static void main(String[] args) {

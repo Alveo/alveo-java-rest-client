@@ -1,4 +1,4 @@
-package com.nicta.vlabclient;
+package com.nicta.vlabclient.entity;
 
 /** A representation of an Item from a item list in the HCS vLab REST API
  * 
