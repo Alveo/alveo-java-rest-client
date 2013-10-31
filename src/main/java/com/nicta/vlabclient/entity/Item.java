@@ -38,16 +38,18 @@ public interface Item {
 	
 	/** Get the (possibly empty) list of association annotations.
 	 * 
-	 *  This is simply a shortcut for users who do not care about the
-	 *  extra metadata attached to the annotations (which will often be true),
-	 *  which is equivalent to calling {@link AnnotationGroup#getAnnotations()} on
-	 *  the result of {@link #getAnnotationGroup()}*/
-	public List<Annotation> getAnnotations();
-	
-	/** Return an AnnotationGroup object, from which metadata and annotations
-	 * can be retrieved
 	 * @return
+	 * @throws UnsupportedLDSchemaException if the schema cannot be interpreted, meaning it has
+	 *  a stucture which this code version cannot map to a POJO
 	 */
-	public AnnotationGroup getAnnotationGroup();
+	public List<Annotation> getAnnotations() throws UnsupportedLDSchemaException;
+	
+	/** Get the (possibly empty) list of association annotations, returning the 
+	 * JSONLD representation of each annotation. In this representation, the
+	 * keys are full URIs.
+	 * 
+	 */
+	public List<Map<String, Object>> annotationsAsJSONLD();
+
 
 }

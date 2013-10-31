@@ -21,5 +21,10 @@ public interface Annotation {
 	/** Return the end offset of the annotation
 	 */
 	public float getEnd();
+	
+	public static class JSONLDKeys {
+		public static final String ANNOTATION = "http://purl.org/dada/schema/0.2/annotations";
+		public static final String COMMON_PROPERTIES = "http://purl.org/dada/schema/0.2/commonProperties";
+	}
 
 }

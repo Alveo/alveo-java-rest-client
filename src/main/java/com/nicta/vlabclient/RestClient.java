@@ -1,6 +1,8 @@
 package com.nicta.vlabclient;
 
+import java.net.URL;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -9,17 +11,27 @@ import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.Invocation;
 import javax.ws.rs.core.MediaType;
 
+import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.github.jsonldjava.core.JSONLD;
+import com.github.jsonldjava.core.JSONLDProcessingError;
+import com.github.jsonldjava.core.Options;
+import com.github.jsonldjava.utils.JSONUtils;
+import com.nicta.vlabclient.JsonApi.JsonAnnotation;
 import com.nicta.vlabclient.JsonApi.JsonAnnotationGroup;
+import com.nicta.vlabclient.JsonApi.JsonCatalogItem;
+import com.nicta.vlabclient.JsonApi.JsonDocument;
+import com.nicta.vlabclient.JsonApi.JsonItemList;
 import com.nicta.vlabclient.entity.Annotation;
+import static com.nicta.vlabclient.entity.Annotation.JSONLDKeys;
 import com.nicta.vlabclient.entity.AnnotationGroup;
 import com.nicta.vlabclient.entity.Document;
 import com.nicta.vlabclient.entity.Item;
 import com.nicta.vlabclient.entity.ItemList;
 
-import static com.nicta.vlabclient.JsonApi.*;
-
 /**
- * The primary class to use to interact with the HCS vLab REST API - use this to retrieve items
+ * The primary class to use to interact with the HCS vLab REST API - use this to
+ * retrieve items
  * 
  * @author Andrew MacKinlay
  * 
@@ -29,6 +41,8 @@ public class RestClient {
 	private String serverBaseUri;
 	private String apiKey;
 	private Client client;
+
+	private static Map<String, Object> EMPTY_MAP = new HashMap<String, Object>();
 
 	/**
 	 * Construct a new REST client instance
@@ -176,14 +190,77 @@ public class RestClient {
 		public Map<String, String> getMetadata() {
 			return fromJson.getMetadata();
 		}
-		
-		public AnnotationGroup getAnnotationGroup() {
-			String url = fromJson.getAnnotationsUrl();
-			return new AnnotationGroupImpl(getJsonInvocBuilder(url).get(JsonAnnotationGroup.class), url);
-		}
 
 		public List<Annotation> getAnnotations() {
-			return getAnnotationGroup().getAnnotations();
+			return new ArrayList<Annotation>();
+		}
+
+		@SuppressWarnings("unchecked")
+		public List<Map<String, Object>> annotationsAsJSONLD() {
+			Object jsonObj = getJsonObject();
+			fixJsonLdContextHack(jsonObj); // XXX: temp hack
+			Map<String, Object> compacted = getResolvedVersion(jsonObj);
+			Map<String, Object> annWrapper = (Map<String, Object>) compacted.get(JSONLDKeys.ANNOTATION);
+			Map<String, Object> commonProps = (Map<String, Object>) compacted.get(JSONLDKeys.COMMON_PROPERTIES);
+			List<Object> annObjects = (List<Object>) annWrapper.get("@list");
+			List<Map<String, Object>> res = new ArrayList<Map<String, Object>>();
+			for (Object annObj : annObjects) {
+				Map<String, Object> annAsMap = (Map<String, Object>) annObj;
+				annAsMap.putAll(commonProps);
+				res.add(annAsMap);
+			}
+			return res;
+		}
+
+		@SuppressWarnings("unchecked")
+		private Map<String, Object> getResolvedVersion(Object jsonObj) {
+			// use 'compact' here to resolve each annotation against the context,
+			// rather than to shorten each annotation (which is its primary use)
+			// return (Map<String, Object>) JSONLD.compact(jsonObj, EMPTY_MAP);
+			// instead of above, use this workaround for HCSVLAB-654:
+			Map<String, Object> jsonAsMap = (Map<String, Object>) jsonObj;
+			String ctxUrl = (String) jsonAsMap.remove("@context");
+			String ctxString = getJsonInvocBuilder(ctxUrl).get(String.class);
+			Map<String, Object> outerCtxMap;
+			try {
+				outerCtxMap = (Map<String, Object>) JSONUtils.fromString(ctxString);
+				Object ctx = outerCtxMap.get("@context");
+				jsonAsMap.put("@context", ctx);
+				return (Map<String, Object>) JSONLD.compact(jsonAsMap, EMPTY_MAP, new Options("", true));
+			} catch (JsonParseException e) {
+				throw new MalformedJSONException(e);
+			} catch (JsonMappingException e) {
+				throw new MalformedJSONException(e);
+			} catch (JSONLDProcessingError e) {
+				throw new MalformedJSONException(e);
+			}
+		}
+
+		/*
+		 * Fix (hopefully temp) for problem documented at:
+		 * https://jira.intersect.org.au/browse/HCSVLAB-651
+		 */
+		@SuppressWarnings("unchecked")
+		private void fixJsonLdContextHack(Object jsonObject) {
+			Map<String, Object> jsonAsMap = (Map<String, Object>) jsonObject;
+			Object ctx = jsonAsMap.get("@vocab");
+			jsonAsMap.remove("@vocab");
+			jsonAsMap.put("@context", ctx);
+		}
+
+		private Object getJsonObject() {
+			try {
+				return JSONUtils.fromString(getRawJson());
+			} catch (JsonParseException e) {
+				throw new MalformedJSONException(e);
+			} catch (JsonMappingException e) {
+				throw new MalformedJSONException(e);
+			}
+		}
+
+		private String getRawJson() {
+			String url = fromJson.getAnnotationsUrl();
+			return getJsonInvocBuilder(url).get(String.class);
 		}
 	}
 
@@ -236,7 +313,7 @@ public class RestClient {
 			return getTextInvocBuilder(getRawTextUrl()).get(String.class);
 		}
 	}
-	
+
 	private class AnnotationGroupImpl implements AnnotationGroup {
 		private String uri;
 		private JsonAnnotationGroup fromJson;
@@ -245,11 +322,11 @@ public class RestClient {
 			this.uri = uri;
 			fromJson = raw;
 		}
-		
+
 		public String getUri() {
 			return uri;
 		}
-		
+
 		public String getItemId() {
 			return fromJson.getItemId();
 		}
@@ -264,7 +341,7 @@ public class RestClient {
 
 		public List<Annotation> getAnnotations() {
 			List<Annotation> anns = new ArrayList<Annotation>();
-			for (JsonAnnotation ja : fromJson.getAnnotations()) 
+			for (JsonAnnotation ja : fromJson.getAnnotations())
 				anns.add(new AnnotationImpl(ja));
 			return anns;
 		}
@@ -298,7 +375,7 @@ public class RestClient {
 
 	/**
 	 * Return the URI of the item list given an ID. For end-users,
-	 * {@link #getItemList()} is probably more useful
+	 * {@link RestClient#getItemList(String)} is probably more useful
 	 * 
 	 * @param itemListId
 	 *            the ID of the item list
@@ -327,10 +404,11 @@ public class RestClient {
 	 *            the fully qualified URI for the REST API
 	 * @return the item list object with the given ID
 	 * @throws Exception
-	 * @see {@link #getItemList(String)}
+	 * @see #getItemList(String)
 	 */
 	public ItemList getItemListFromUri(String itemListUri) throws Exception {
-		return new ItemListImpl(getJsonInvocBuilder(itemListUri).get(JsonItemList.class), itemListUri);
+		return new ItemListImpl(getJsonInvocBuilder(itemListUri).get(JsonItemList.class),
+				itemListUri);
 	}
 
 	/**
@@ -341,7 +419,7 @@ public class RestClient {
 	 *            the ID of the item list
 	 * @return unformatted JSON from the HCS vLab REST server
 	 * @throws Exception
-	 * @see {@link #getItemList(String)}
+	 * @see #getItemList(String)
 	 */
 	public String getItemListJson(String itemListId) throws Exception {
 		return getItemListJsonFromUri(getItemListUri(itemListId));
@@ -355,7 +433,7 @@ public class RestClient {
 	 *            the fully qualified URI for the REST API
 	 * @return unformatted JSON from the HCS vLab REST server
 	 * @throws Exception
-	 * @see {@link #getItemListJson(String)}
+	 * @see RestClient#getItemListJson(String)
 	 */
 	public String getItemListJsonFromUri(String itemListUri) throws Exception {
 		return getJsonInvocBuilder(itemListUri).get(String.class);
