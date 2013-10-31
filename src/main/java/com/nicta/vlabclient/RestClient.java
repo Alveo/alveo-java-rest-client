@@ -1,6 +1,5 @@
 package com.nicta.vlabclient;
 
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -22,8 +21,9 @@ import com.nicta.vlabclient.JsonApi.JsonAnnotationGroup;
 import com.nicta.vlabclient.JsonApi.JsonCatalogItem;
 import com.nicta.vlabclient.JsonApi.JsonDocument;
 import com.nicta.vlabclient.JsonApi.JsonItemList;
+import com.nicta.vlabclient.JsonApi.VersionResult;
 import com.nicta.vlabclient.entity.Annotation;
-import static com.nicta.vlabclient.entity.Annotation.JSONLDKeys;
+import com.nicta.vlabclient.entity.Annotation.JSONLDKeys;
 import com.nicta.vlabclient.entity.AnnotationGroup;
 import com.nicta.vlabclient.entity.Document;
 import com.nicta.vlabclient.entity.Item;
@@ -42,6 +42,8 @@ public class RestClient {
 	private String apiKey;
 	private Client client;
 
+	private static interface JsonMap extends Map<String, Object> {}
+	
 	private static Map<String, Object> EMPTY_MAP = new HashMap<String, Object>();
 
 	/**
@@ -53,11 +55,20 @@ public class RestClient {
 	 * @param apiKey
 	 *            The API key for the relevant user account, available from the
 	 *            HCS vLab web interface
+	 * @throws UnknownServerAPIVersionException If the server's reported API version is incompatible with this code
 	 */
-	public RestClient(String serverBaseUri, String apiKey) {
+	public RestClient(String serverBaseUri, String apiKey) throws UnknownServerAPIVersionException {
 		this.serverBaseUri = serverBaseUri;
 		this.apiKey = apiKey;
 		client = ClientBuilder.newClient();
+		checkVersion();
+	}
+	
+	private void checkVersion() throws UnknownServerAPIVersionException {
+		VersionResult verRes = getJsonInvocBuilder(serverBaseUri + "/version").get(VersionResult.class);
+		String version = verRes.apiVersion;
+		if (!version.equals("2.0") && !version.startsWith("Sprint_13")) 
+			throw new UnknownServerAPIVersionException("This codebase is not designed for API version " + version);
 	}
 
 	/**
@@ -199,34 +210,33 @@ public class RestClient {
 		public List<Map<String, Object>> annotationsAsJSONLD() {
 			Object jsonObj = getJsonObject();
 			fixJsonLdContextHack(jsonObj); // XXX: temp hack
-			Map<String, Object> compacted = getResolvedVersion(jsonObj);
-			Map<String, Object> annWrapper = (Map<String, Object>) compacted.get(JSONLDKeys.ANNOTATION);
-			Map<String, Object> commonProps = (Map<String, Object>) compacted.get(JSONLDKeys.COMMON_PROPERTIES);
+			JsonMap compacted = getResolvedVersion(jsonObj);
+			JsonMap annWrapper = (JsonMap) compacted.get(JSONLDKeys.ANNOTATION);
+			JsonMap commonProps = (JsonMap) compacted.get(JSONLDKeys.COMMON_PROPERTIES);
 			List<Object> annObjects = (List<Object>) annWrapper.get("@list");
 			List<Map<String, Object>> res = new ArrayList<Map<String, Object>>();
 			for (Object annObj : annObjects) {
-				Map<String, Object> annAsMap = (Map<String, Object>) annObj;
+				JsonMap annAsMap = (JsonMap) annObj;
 				annAsMap.putAll(commonProps);
 				res.add(annAsMap);
 			}
 			return res;
 		}
 
-		@SuppressWarnings("unchecked")
-		private Map<String, Object> getResolvedVersion(Object jsonObj) {
+		private JsonMap getResolvedVersion(Object jsonObj) {
 			// use 'compact' here to resolve each annotation against the context,
 			// rather than to shorten each annotation (which is its primary use)
 			// return (Map<String, Object>) JSONLD.compact(jsonObj, EMPTY_MAP);
 			// instead of above, use this workaround for HCSVLAB-654:
-			Map<String, Object> jsonAsMap = (Map<String, Object>) jsonObj;
+			JsonMap jsonAsMap = (JsonMap) jsonObj;
 			String ctxUrl = (String) jsonAsMap.remove("@context");
 			String ctxString = getJsonInvocBuilder(ctxUrl).get(String.class);
-			Map<String, Object> outerCtxMap;
+			JsonMap outerCtxMap;
 			try {
-				outerCtxMap = (Map<String, Object>) JSONUtils.fromString(ctxString);
+				outerCtxMap = (JsonMap) JSONUtils.fromString(ctxString);
 				Object ctx = outerCtxMap.get("@context");
 				jsonAsMap.put("@context", ctx);
-				return (Map<String, Object>) JSONLD.compact(jsonAsMap, EMPTY_MAP, new Options("", true));
+				return (JsonMap) JSONLD.compact(jsonAsMap, EMPTY_MAP, new Options("", true));
 			} catch (JsonParseException e) {
 				throw new MalformedJSONException(e);
 			} catch (JsonMappingException e) {
@@ -242,7 +252,7 @@ public class RestClient {
 		 */
 		@SuppressWarnings("unchecked")
 		private void fixJsonLdContextHack(Object jsonObject) {
-			Map<String, Object> jsonAsMap = (Map<String, Object>) jsonObject;
+			JsonMap jsonAsMap = (JsonMap) jsonObject;
 			Object ctx = jsonAsMap.get("@vocab");
 			jsonAsMap.remove("@vocab");
 			jsonAsMap.put("@context", ctx);

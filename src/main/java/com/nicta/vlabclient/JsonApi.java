@@ -130,4 +130,9 @@ class JsonApi {
 		}
 		
 	}
+	
+	static class VersionResult {
+		@JsonProperty(value = "API version")
+		public String apiVersion;
+	}
 }
