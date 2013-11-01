@@ -1,19 +1,12 @@
 package com.nicta.vlabclient.entity;
 
-/** A representation of a 'document' (version of an item) in the HCSvLab API
+/** A representation of a 'document' (version of an item) in the HCSvLab API with associated metadata
  * 
  * @author andrew.mackinlay
  *
  */
-public interface Document {
+public interface Document extends RawDocument {
 
-	/** Get the URL where the raw text is stored. 
-	 * 
-	 * The {@link #rawText()} method is probably more useful to end users
-	 * 
-	 * @return The URL from which the raw text can be retrieved
-	 */
-	public String getRawTextUrl();
 
 	/** Get the 'type' of the document
 	 * 
@@ -28,10 +21,5 @@ public interface Document {
 	 */
 	public String getSize();
 
-	/** Get the raw document text 
-	 * 
-	 * @return The raw text of the document.
-	 */
-	public String rawText();
 
 }
