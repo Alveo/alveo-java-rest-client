@@ -1,6 +1,7 @@
 package com.nicta.vlabclient;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -16,18 +17,17 @@ import com.github.jsonldjava.core.JSONLD;
 import com.github.jsonldjava.core.JSONLDProcessingError;
 import com.github.jsonldjava.core.Options;
 import com.github.jsonldjava.utils.JSONUtils;
-import com.nicta.vlabclient.JsonApi.JsonAnnotation;
-import com.nicta.vlabclient.JsonApi.JsonAnnotationGroup;
 import com.nicta.vlabclient.JsonApi.JsonCatalogItem;
 import com.nicta.vlabclient.JsonApi.JsonDocument;
 import com.nicta.vlabclient.JsonApi.JsonItemList;
 import com.nicta.vlabclient.JsonApi.VersionResult;
 import com.nicta.vlabclient.entity.Annotation;
 import com.nicta.vlabclient.entity.Annotation.JSONLDKeys;
-import com.nicta.vlabclient.entity.AnnotationGroup;
 import com.nicta.vlabclient.entity.Document;
 import com.nicta.vlabclient.entity.Item;
 import com.nicta.vlabclient.entity.ItemList;
+import com.nicta.vlabclient.entity.RawDocument;
+import com.nicta.vlabclient.entity.UnsupportedLDSchemaException;
 
 /**
  * The primary class to use to interact with the HCS vLab REST API - use this to
@@ -200,8 +200,13 @@ public class RestClient {
 			return fromJson.getMetadata();
 		}
 
-		public List<Annotation> getAnnotations() {
-			return new ArrayList<Annotation>();
+		public List<Annotation> getAnnotations() throws UnsupportedLDSchemaException {
+			ArrayList<Annotation> res = new ArrayList<Annotation>();
+			Map<String, RawDocument> rawDocCache = Collections.synchronizedMap(
+					new HashMap<String, RawDocument>(1));
+			for (Map<String, Object> jsonLdAnn : annotationsAsJSONLD()) 
+				res.add(new AnnotationImpl(jsonLdAnn, rawDocCache));
+			return res;
 		}
 
 		@SuppressWarnings("unchecked")
@@ -278,17 +283,11 @@ public class RestClient {
 		}
 	}
 
-	/**
-	 * A class representing a 'document' (version of an item) in the HCSvLab API
-	 * 
-	 * @author andrew.mackinlay
-	 * 
-	 */
-	private class DocumentImpl implements Document {
-		private JsonDocument fromJson;
-
-		private DocumentImpl(JsonDocument raw) {
-			fromJson = raw;
+	private class RawDocumentImpl implements RawDocument {
+		protected final String url;
+		
+		private RawDocumentImpl(String url) {
+			this.url = url;
 		}
 
 		/*
@@ -297,7 +296,32 @@ public class RestClient {
 		 * @see com.nicta.vlabclient.Document#getRawTextUrl()
 		 */
 		public String getRawTextUrl() {
-			return fromJson.getUrl();
+			return url;
+		}
+
+
+		/*
+		 * (non-Javadoc)
+		 * 
+		 * @see com.nicta.vlabclient.Document#rawText()
+		 */
+		public String rawText() {
+			return getTextInvocBuilder(getRawTextUrl()).get(String.class);
+		}		
+	}
+	
+	/**
+	 * A class representing a 'document' (version of an item) in the HCSvLab API
+	 * 
+	 * @author andrew.mackinlay
+	 * 
+	 */
+	private class DocumentImpl extends RawDocumentImpl implements Document {
+		private final JsonDocument fromJson;
+		
+		private DocumentImpl(JsonDocument raw) {
+			super(raw.getUrl());
+			fromJson = raw;
 		}
 
 		/*
@@ -318,71 +342,74 @@ public class RestClient {
 			return fromJson.getSize();
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * 
-		 * @see com.nicta.vlabclient.Document#rawText()
-		 */
-		public String rawText() {
-			return getTextInvocBuilder(getRawTextUrl()).get(String.class);
-		}
 	}
 
-	private class AnnotationGroupImpl implements AnnotationGroup {
-		private String uri;
-		private JsonAnnotationGroup fromJson;
-
-		private AnnotationGroupImpl(JsonAnnotationGroup raw, String uri) {
-			this.uri = uri;
-			fromJson = raw;
-		}
-
-		public String getUri() {
-			return uri;
-		}
-
-		public String getItemId() {
-			return fromJson.getItemId();
-		}
-
-		public String getUtteranceUrl() {
-			return fromJson.getUtterance();
-		}
-
-		public int getNumAnnotations() {
-			return fromJson.getAnnotationsFound();
-		}
-
-		public List<Annotation> getAnnotations() {
-			List<Annotation> anns = new ArrayList<Annotation>();
-			for (JsonAnnotation ja : fromJson.getAnnotations())
-				anns.add(new AnnotationImpl(ja));
-			return anns;
-		}
-	}
 
 	private class AnnotationImpl implements Annotation {
 
-		private JsonAnnotation fromJson;
-
-		private AnnotationImpl(JsonAnnotation raw) {
-			fromJson = raw;
+		private Map<String, Object> ldValues;
+		private Map<String, RawDocument> rawDocCache;
+		
+		private String type;
+		private String label;
+		private double start;
+		private double end;
+		
+		private AnnotationImpl(Map<String, Object> raw, Map<String, RawDocument> docCache) throws UnsupportedLDSchemaException {
+			ldValues = raw;
+			rawDocCache = docCache;
+			initValues();
 		}
 
+		private Object getValue(String key) throws UnsupportedLDSchemaException {
+			Object res = ldValues.get(key);
+			if (res == null)
+				throw new UnsupportedLDSchemaException(String.format("No key {} found for annotation", key));
+			return res;
+		}
+		
+		private void initValues() throws UnsupportedLDSchemaException {
+			type = (String) getValue(JSONLDKeys.TYPE_ATTRIB);
+			label = (String) getValue(JSONLDKeys.LABEL_ATTRIB);
+			start =  (Double) getValue(JSONLDKeys.START_ATTRIB);
+			end = (Double) getValue(JSONLDKeys.END_ATTRIB);
+			getValue(JSONLDKeys.ANNOTATES_ATTRIB); // check for key only
+		}
+		
 		public String getType() {
-			return fromJson.getType();
+			return type;
 		}
 
 		public String getLabel() {
-			return fromJson.getLabel();
+			return label;
 		}
 
-		public float getStart() {
-			return fromJson.getStart();
+		public double getStart() {
+			return start;
 		}
 
-		public float getEnd() {
-			return fromJson.getEnd();
+		public double getEnd() {
+			return end;
+		}
+
+		public RawDocument getAnnotationTarget() {
+			// memoize, since clients might call it multiple times
+			String url = annTargetUrl();
+			RawDocument annTgt = rawDocCache.get(url);
+			if (annTgt == null) {
+				annTgt = new RawDocumentImpl(url);
+				rawDocCache.put(url, annTgt);
+			}
+			return annTgt;
+		}
+		
+		private String annTargetUrl() {
+			return (String) ldValues.get(JSONLDKeys.ANNOTATES_ATTRIB);
+		}
+		
+		public String toString() {
+			return String.format("%s(%s)@%1.1f,%1.1f->%s", getType(), getLabel(), getStart(), getEnd(),
+					getAnnotationTarget().getRawTextUrl());
 		}
 
 	}
