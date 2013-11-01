@@ -6,6 +6,9 @@ package com.nicta.vlabclient.entity;
  *
  */
 public interface Annotation {
+	
+	/** Return the unique ID associated with the annotation */
+	public String getId();
 
 	/** Return the type of the annotation (such as "laughter", "speaker") according to HCS vLab */
 	public String getType();

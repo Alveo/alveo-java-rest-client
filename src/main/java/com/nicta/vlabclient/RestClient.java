@@ -350,6 +350,7 @@ public class RestClient {
 		private Map<String, Object> ldValues;
 		private Map<String, RawDocument> rawDocCache;
 		
+		private String annId;
 		private String type;
 		private String label;
 		private double start;
@@ -369,6 +370,7 @@ public class RestClient {
 		}
 		
 		private void initValues() throws UnsupportedLDSchemaException {
+			annId = (String) getValue("@id");
 			type = (String) getValue(JSONLDKeys.TYPE_ATTRIB);
 			label = (String) getValue(JSONLDKeys.LABEL_ATTRIB);
 			start =  (Double) getValue(JSONLDKeys.START_ATTRIB);
@@ -407,9 +409,14 @@ public class RestClient {
 			return (String) ldValues.get(JSONLDKeys.ANNOTATES_ATTRIB);
 		}
 		
+
+		public String getId() {
+			return annId;
+		}
+
 		public String toString() {
-			return String.format("%s(%s)@%1.1f,%1.1f->%s", getType(), getLabel(), getStart(), getEnd(),
-					getAnnotationTarget().getRawTextUrl());
+			return String.format("<%s>%s(%s)@%1.1f,%1.1f->%s", getId(), getType(), getLabel(), 
+					getStart(), getEnd(), getAnnotationTarget().getRawTextUrl());
 		}
 
 	}
