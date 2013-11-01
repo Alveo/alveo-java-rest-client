@@ -41,8 +41,6 @@ public class RestClient {
 	private String serverBaseUri;
 	private String apiKey;
 	private Client client;
-
-	private static interface JsonMap extends Map<String, Object> {}
 	
 	private static Map<String, Object> EMPTY_MAP = new HashMap<String, Object>();
 
@@ -210,33 +208,33 @@ public class RestClient {
 		public List<Map<String, Object>> annotationsAsJSONLD() {
 			Object jsonObj = getJsonObject();
 			fixJsonLdContextHack(jsonObj); // XXX: temp hack
-			JsonMap compacted = getResolvedVersion(jsonObj);
-			JsonMap annWrapper = (JsonMap) compacted.get(JSONLDKeys.ANNOTATION);
-			JsonMap commonProps = (JsonMap) compacted.get(JSONLDKeys.COMMON_PROPERTIES);
+			Map<String, Object> compacted = getResolvedVersion(jsonObj);
+			Map<String, Object> annWrapper = jmap(compacted.get(JSONLDKeys.ANNOTATION));
+			Map<String, Object> commonProps = jmap(compacted.get(JSONLDKeys.COMMON_PROPERTIES));
 			List<Object> annObjects = (List<Object>) annWrapper.get("@list");
 			List<Map<String, Object>> res = new ArrayList<Map<String, Object>>();
 			for (Object annObj : annObjects) {
-				JsonMap annAsMap = (JsonMap) annObj;
+				Map<String, Object> annAsMap = jmap(annObj);
 				annAsMap.putAll(commonProps);
 				res.add(annAsMap);
 			}
 			return res;
 		}
 
-		private JsonMap getResolvedVersion(Object jsonObj) {
+		private Map<String, Object> getResolvedVersion(Object jsonObj) {
 			// use 'compact' here to resolve each annotation against the context,
 			// rather than to shorten each annotation (which is its primary use)
 			// return (Map<String, Object>) JSONLD.compact(jsonObj, EMPTY_MAP);
 			// instead of above, use this workaround for HCSVLAB-654:
-			JsonMap jsonAsMap = (JsonMap) jsonObj;
+			Map<String, Object> jsonAsMap = jmap(jsonObj);
 			String ctxUrl = (String) jsonAsMap.remove("@context");
 			String ctxString = getJsonInvocBuilder(ctxUrl).get(String.class);
-			JsonMap outerCtxMap;
+			Map<String, Object> outerCtxMap;
 			try {
-				outerCtxMap = (JsonMap) JSONUtils.fromString(ctxString);
+				outerCtxMap = jmap(JSONUtils.fromString(ctxString));
 				Object ctx = outerCtxMap.get("@context");
 				jsonAsMap.put("@context", ctx);
-				return (JsonMap) JSONLD.compact(jsonAsMap, EMPTY_MAP, new Options("", true));
+				return jmap(JSONLD.compact(jsonAsMap, EMPTY_MAP, new Options("", true)));
 			} catch (JsonParseException e) {
 				throw new MalformedJSONException(e);
 			} catch (JsonMappingException e) {
@@ -252,10 +250,16 @@ public class RestClient {
 		 */
 		@SuppressWarnings("unchecked")
 		private void fixJsonLdContextHack(Object jsonObject) {
-			JsonMap jsonAsMap = (JsonMap) jsonObject;
+			Map<String, Object> jsonAsMap = jmap(jsonObject);
 			Object ctx = jsonAsMap.get("@vocab");
 			jsonAsMap.remove("@vocab");
 			jsonAsMap.put("@context", ctx);
+		}
+		
+		@SuppressWarnings("unchecked")
+		// helper purely to avoid verbose casts
+		private Map<String, Object> jmap(Object jsonObject) {
+			return (Map<String, Object>) jsonObject;
 		}
 
 		private Object getJsonObject() {
