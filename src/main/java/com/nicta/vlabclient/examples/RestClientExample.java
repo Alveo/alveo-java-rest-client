@@ -7,6 +7,7 @@ import com.nicta.vlabclient.entity.Annotation;
 import com.nicta.vlabclient.entity.Document;
 import com.nicta.vlabclient.entity.Item;
 import com.nicta.vlabclient.entity.ItemList;
+import com.nicta.vlabclient.entity.TextDocument;
 
 public class RestClientExample {
 	public static void main(String[] args) throws Exception {
@@ -27,8 +28,8 @@ public class RestClientExample {
 					System.out.println(entry.getKey() + ": " + entry.getValue());
 				}
 				System.out.println("\nDOCS:");
-				for (Document doc : ci.documents()) {
-					System.out.println("\tTEXT URL: " + doc.getRawTextUrl());
+				for (TextDocument doc : ci.textDocuments()) {
+					System.out.println("\tTEXT URL: " + doc.getDataUrl());
 					System.out.println("\tSIZE: " + doc.getSize());
 					System.out.println("\tTYPE: " + doc.getType());
 					String text = doc.rawText();
@@ -46,7 +47,7 @@ public class RestClientExample {
 //						System.out.println(String.format("\t%s:%s", annEntry.getKey(), annEntry.getValue()));
 //					System.out.println("\t,");
 //				}
-				for (Annotation ann : ci.getAnnotations()) {
+				for (Annotation ann : ci.getTextAnnotations()) {
 					System.out.println("\t" + ann);
 				}
 			}

@@ -12,6 +12,10 @@ public interface Item {
 
 	/** Return the documents associated with this item */
 	public List<Document> documents();
+	
+	public List<TextDocument> textDocuments();
+	
+	public List<AudioDocument> audioDocuments();
 
 	/** Return the URI (a valid REST URI) from which this item was retrieved */
 	public String getUri();

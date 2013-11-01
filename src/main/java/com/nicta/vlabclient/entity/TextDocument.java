@@ -9,15 +9,7 @@ package com.nicta.vlabclient.entity;
  *
  */
 
-public interface RawDocument {
-
-	/** Get the URL where the raw text is stored. 
-	 * 
-	 * The {@link #rawText()} method is probably more useful to end users
-	 * 
-	 * @return The URL from which the raw text can be retrieved
-	 */
-	public String getRawTextUrl();
+public interface TextDocument extends Document {
 
 	/** Get the raw document text 
 	 * 

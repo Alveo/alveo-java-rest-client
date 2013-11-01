@@ -25,7 +25,7 @@ public interface Annotation {
 	 */
 	public double getEnd();
 	
-	public RawDocument getAnnotationTarget();
+	public Document getAnnotationTarget();
 	
 	public static class JSONLDKeys {
 		public static final String ANNOTATION = "http://purl.org/dada/schema/0.2/annotations";

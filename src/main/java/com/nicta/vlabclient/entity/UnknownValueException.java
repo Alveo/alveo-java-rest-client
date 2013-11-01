@@ -1,0 +1,20 @@
+package com.nicta.vlabclient.entity;
+
+public class UnknownValueException extends Exception {
+
+	public UnknownValueException() {
+	}
+
+	public UnknownValueException(String message) {
+		super(message);
+	}
+
+	public UnknownValueException(Throwable cause) {
+		super(cause);
+	}
+
+	public UnknownValueException(String message, Throwable cause) {
+		super(message, cause);
+	}
+
+}

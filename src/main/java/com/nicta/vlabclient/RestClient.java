@@ -23,11 +23,13 @@ import com.nicta.vlabclient.JsonApi.JsonItemList;
 import com.nicta.vlabclient.JsonApi.VersionResult;
 import com.nicta.vlabclient.entity.Annotation;
 import com.nicta.vlabclient.entity.Annotation.JSONLDKeys;
+import com.nicta.vlabclient.entity.AudioDocument;
 import com.nicta.vlabclient.entity.Document;
 import com.nicta.vlabclient.entity.Item;
 import com.nicta.vlabclient.entity.ItemList;
-import com.nicta.vlabclient.entity.RawDocument;
+import com.nicta.vlabclient.entity.TextDocument;
 import com.nicta.vlabclient.entity.TextAnnotation;
+import com.nicta.vlabclient.entity.UnknownValueException;
 import com.nicta.vlabclient.entity.UnsupportedLDSchemaException;
 
 /**
@@ -166,8 +168,14 @@ public class RestClient {
 		public List<Document> documents() {
 			JsonDocument[] jsonDocs = fromJson.getDocuments();
 			List<Document> docs = new ArrayList<Document>(jsonDocs.length);
-			for (JsonDocument jd : jsonDocs)
-				docs.add(new DocumentImpl(jd));
+			for (JsonDocument jd : jsonDocs) {
+				Document doc = null;
+				if (jd.getType().equals("Audio"))
+					doc = new AudioDocumentImpl(jd);
+				else
+					doc = new TextDocumentImpl(jd);
+				docs.add(doc);
+			}
 			return docs;
 		}
 
@@ -214,8 +222,8 @@ public class RestClient {
 			// underlying
 			// call it mutple times for different types of annotations.
 			cachedAnns = new ArrayList<Annotation>();
-			Map<String, RawDocument> rawDocCache = Collections
-					.synchronizedMap(new HashMap<String, RawDocument>(1));
+			Map<String, Document> rawDocCache = Collections
+					.synchronizedMap(new HashMap<String, Document>(1));
 			for (Map<String, Object> jsonLdAnn : annotationsAsJSONLD()) {
 				Annotation ann = null;
 				String annClass = (String) jsonLdAnn.get("@type");
@@ -313,31 +321,27 @@ public class RestClient {
 			String url = fromJson.getAnnotationsUrl();
 			return getJsonInvocBuilder(url).get(String.class);
 		}
-	}
 
-	private class RawDocumentImpl implements RawDocument {
-		protected final String url;
-
-		private RawDocumentImpl(String url) {
-			this.url = url;
+		public List<TextDocument> textDocuments() {
+			List<TextDocument> docs = new ArrayList<TextDocument>();
+			for (Document doc : documents()) {
+				try {
+					docs.add((TextDocument) doc);
+				} catch (ClassCastException e) {
+				}
+			}
+			return docs;
 		}
 
-		/*
-		 * (non-Javadoc)
-		 * 
-		 * @see com.nicta.vlabclient.Document#getRawTextUrl()
-		 */
-		public String getRawTextUrl() {
-			return url;
-		}
-
-		/*
-		 * (non-Javadoc)
-		 * 
-		 * @see com.nicta.vlabclient.Document#rawText()
-		 */
-		public String rawText() {
-			return getTextInvocBuilder(getRawTextUrl()).get(String.class);
+		public List<AudioDocument> audioDocuments() {
+			List<AudioDocument> docs = new ArrayList<AudioDocument>();
+			for (Document doc : documents()) {
+				try {
+					docs.add((AudioDocument) doc);
+				} catch (ClassCastException e) {
+				}
+			}
+			return docs;
 		}
 	}
 
@@ -347,12 +351,19 @@ public class RestClient {
 	 * @author andrew.mackinlay
 	 * 
 	 */
-	private class DocumentImpl extends RawDocumentImpl implements Document {
-		private final JsonDocument fromJson;
+	private class DocumentImpl implements Document {
+		private String docType = null;
+		private String docSize = null;
+		private final String docUrl;
 
 		private DocumentImpl(JsonDocument raw) {
-			super(raw.getUrl());
-			fromJson = raw;
+			docType = raw.getType();
+			docSize = raw.getSize();
+			docUrl = raw.getUrl();
+		}
+
+		private DocumentImpl(String url) {
+			docUrl = url;
 		}
 
 		/*
@@ -360,8 +371,12 @@ public class RestClient {
 		 * 
 		 * @see com.nicta.vlabclient.Document#getType()
 		 */
-		public String getType() {
-			return fromJson.getType();
+		public String getType() throws UnknownValueException {
+			if (docType == null)
+				throw new UnknownValueException(
+						"Document type not explicitly set; this may be because the document"
+								+ " comes from an annotation");
+			return docType;
 		}
 
 		/*
@@ -369,16 +384,63 @@ public class RestClient {
 		 * 
 		 * @see com.nicta.vlabclient.Document#getSize()
 		 */
-		public String getSize() {
-			return fromJson.getSize();
+		public String getSize() throws UnknownValueException {
+			if (docSize == null)
+				throw new UnknownValueException(
+						"Document size not explicitly set; this may be because the document"
+								+ " comes from an annotation");
+			return docSize;
+
+		}
+
+		public String getDataUrl() {
+			return docUrl;
 		}
 
 	}
 
-	private class AnnotationImpl implements Annotation {
+	private class TextDocumentImpl extends DocumentImpl implements TextDocument {
+
+		private TextDocumentImpl(String url) {
+			super(url);
+		}
+
+		private TextDocumentImpl(JsonDocument fromJson) {
+			super(fromJson);
+		}
+
+		/*
+		 * (non-Javadoc)
+		 * 
+		 * @see com.nicta.vlabclient.Document#rawText()
+		 */
+		public String rawText() {
+			return getTextInvocBuilder(getDataUrl()).get(String.class);
+		}
+	}
+
+	public class AudioDocumentImpl extends DocumentImpl implements AudioDocument {
+
+		private AudioDocumentImpl(String url) {
+			super(url);
+		}
+
+		private AudioDocumentImpl(JsonDocument fromJson) {
+			super(fromJson);
+		}
+
+		public byte[] getData() {
+			return getDataInvocBuilder(getDataUrl()).get(byte[].class); // XXX:
+																		// not
+																		// tested
+		}
+
+	}
+
+	private abstract class AnnotationImpl implements Annotation {
 
 		private Map<String, Object> ldValues;
-		private Map<String, RawDocument> rawDocCache;
+		private Map<String, Document> rawDocCache;
 
 		private String annId;
 		private String type;
@@ -386,7 +448,7 @@ public class RestClient {
 		private double start;
 		private double end;
 
-		private AnnotationImpl(Map<String, Object> raw, Map<String, RawDocument> docCache)
+		private AnnotationImpl(Map<String, Object> raw, Map<String, Document> docCache)
 				throws UnsupportedLDSchemaException {
 			ldValues = raw;
 			rawDocCache = docCache;
@@ -426,18 +488,20 @@ public class RestClient {
 			return end;
 		}
 
-		public RawDocument getAnnotationTarget() {
+		public Document getAnnotationTarget() {
 			// memoize, since clients might call it multiple times
 			String url = annTargetUrl();
-			RawDocument annTgt = rawDocCache.get(url);
+			Document annTgt = rawDocCache.get(url);
 			if (annTgt == null) {
-				annTgt = new RawDocumentImpl(url);
+				annTgt = getNewAnnotationTarget();
 				rawDocCache.put(url, annTgt);
 			}
 			return annTgt;
 		}
 
-		private String annTargetUrl() {
+		protected abstract Document getNewAnnotationTarget();
+
+		protected String annTargetUrl() {
 			return (String) ldValues.get(JSONLDKeys.ANNOTATES_ATTRIB);
 		}
 
@@ -447,7 +511,7 @@ public class RestClient {
 
 		public String toString() {
 			return String.format("<%s>%s(%s)@%1.1f,%1.1f->%s", getId(), getType(), getLabel(),
-					getStart(), getEnd(), getAnnotationTarget().getRawTextUrl());
+					getStart(), getEnd(), getAnnotationTarget().getDataUrl());
 		}
 
 	}
@@ -456,7 +520,7 @@ public class RestClient {
 		private final int startOffset;
 		private final int endOffset;
 
-		private TextAnnotationImpl(Map<String, Object> raw, Map<String, RawDocument> docCache)
+		private TextAnnotationImpl(Map<String, Object> raw, Map<String, Document> docCache)
 				throws UnsupportedLDSchemaException {
 			super(raw, docCache);
 			startOffset = (int) getStart();
@@ -476,7 +540,16 @@ public class RestClient {
 
 		public String toString() {
 			return String.format("<%s>%s(%s)@%d,%d->%s", getId(), getType(), getLabel(),
-					getStartOffset(), getEndOffset(), getAnnotationTarget().getRawTextUrl());
+					getStartOffset(), getEndOffset(), getAnnotationTarget().getDataUrl());
+		}
+
+		public TextDocument getTextAnnotationTarget() {
+			return (TextDocument) getAnnotationTarget();
+		}
+
+		@Override
+		protected Document getNewAnnotationTarget() {
+			return new TextDocumentImpl(annTargetUrl());
 		}
 
 	}
@@ -553,6 +626,10 @@ public class RestClient {
 
 	private Invocation.Builder getTextInvocBuilder(String uri) {
 		return getInvocBuilder(uri, MediaType.TEXT_PLAIN);
+	}
+
+	private Invocation.Builder getDataInvocBuilder(String uri) {
+		return getInvocBuilder(uri, MediaType.APPLICATION_OCTET_STREAM);
 	}
 
 	private Invocation.Builder getInvocBuilder(String uri, String contType) {
