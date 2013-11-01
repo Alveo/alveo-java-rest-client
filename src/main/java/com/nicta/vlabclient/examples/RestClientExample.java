@@ -9,7 +9,7 @@ import com.nicta.vlabclient.entity.Item;
 import com.nicta.vlabclient.entity.ItemList;
 
 public class RestClientExample {
-	public static void main(String[] args) {
+	public static void main(String[] args) throws Exception {
 		String serverUri = args[0];
 		String apiKey = args[1];
 		String itemListId = args[2];
@@ -38,9 +38,14 @@ public class RestClientExample {
 					System.out.println("\t==================");
 				}
 				System.out.println("\nANNS:");
-				for (Annotation ann : ci.getAnnotations()) 
-					System.out.println(String.format("\t%s(%s)@<%1.1f:%1.1f>", ann.getType(), ann.getLabel(),
-							ann.getStart(), ann.getEnd()));
+//				for (Annotation ann : ci.getAnnotations()) 
+//					System.out.println(String.format("\t%s(%s)@<%1.1f:%1.1f>", ann.getType(), ann.getLabel(),
+//							ann.getStart(), ann.getEnd()));
+				for (Map<String, Object> ann : ci.annotationsAsJSONLD()) {
+					for (Map.Entry<String, Object> annEntry : ann.entrySet()) 
+						System.out.println(String.format("\t%s:%s", annEntry.getKey(), annEntry.getValue()));
+					System.out.println("\t,");
+				}
 			}
 		} catch (Exception e) {
 			throw new RuntimeException(e);
