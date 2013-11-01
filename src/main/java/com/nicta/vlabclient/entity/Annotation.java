@@ -16,15 +16,28 @@ public interface Annotation {
 
 	/** Return the start offset of the annotation
 	 */
-	public float getStart();
+	public double getStart();
 
 	/** Return the end offset of the annotation
 	 */
-	public float getEnd();
+	public double getEnd();
+	
+	public RawDocument getAnnotationTarget();
 	
 	public static class JSONLDKeys {
 		public static final String ANNOTATION = "http://purl.org/dada/schema/0.2/annotations";
 		public static final String COMMON_PROPERTIES = "http://purl.org/dada/schema/0.2/commonProperties";
+		public static final String TEXT_ANNOTATION_TYPE = "http://purl.org/dada/schema/0.2/TextAnnotation";
+		private static final String attribBase = "http://purl.org/dada/schema/0.2";
+		
+		private static String fullUri(String suffix) {
+			return String.format("%s/%s", attribBase, suffix);
+		}
+		public static final String END_ATTRIB = fullUri("end");
+		public static final String START_ATTRIB = fullUri("start");
+		public static final String LABEL_ATTRIB = fullUri("label");
+		public static final String TYPE_ATTRIB = fullUri("type");
+		public static final String ANNOTATES_ATTRIB = fullUri("annotates");
 	}
 
 }
