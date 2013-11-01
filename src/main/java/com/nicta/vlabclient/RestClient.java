@@ -27,6 +27,7 @@ import com.nicta.vlabclient.entity.Document;
 import com.nicta.vlabclient.entity.Item;
 import com.nicta.vlabclient.entity.ItemList;
 import com.nicta.vlabclient.entity.RawDocument;
+import com.nicta.vlabclient.entity.TextAnnotation;
 import com.nicta.vlabclient.entity.UnsupportedLDSchemaException;
 
 /**
@@ -41,7 +42,7 @@ public class RestClient {
 	private String serverBaseUri;
 	private String apiKey;
 	private Client client;
-	
+
 	private static Map<String, Object> EMPTY_MAP = new HashMap<String, Object>();
 
 	/**
@@ -53,7 +54,9 @@ public class RestClient {
 	 * @param apiKey
 	 *            The API key for the relevant user account, available from the
 	 *            HCS vLab web interface
-	 * @throws UnknownServerAPIVersionException If the server's reported API version is incompatible with this code
+	 * @throws UnknownServerAPIVersionException
+	 *             If the server's reported API version is incompatible with
+	 *             this code
 	 */
 	public RestClient(String serverBaseUri, String apiKey) throws UnknownServerAPIVersionException {
 		this.serverBaseUri = serverBaseUri;
@@ -61,12 +64,14 @@ public class RestClient {
 		client = ClientBuilder.newClient();
 		checkVersion();
 	}
-	
+
 	private void checkVersion() throws UnknownServerAPIVersionException {
-		VersionResult verRes = getJsonInvocBuilder(serverBaseUri + "/version").get(VersionResult.class);
+		VersionResult verRes = getJsonInvocBuilder(serverBaseUri + "/version").get(
+				VersionResult.class);
 		String version = verRes.apiVersion;
-		if (!version.equals("2.0") && !version.startsWith("Sprint_13")) 
-			throw new UnknownServerAPIVersionException("This codebase is not designed for API version " + version);
+		if (!version.equals("2.0") && !version.startsWith("Sprint_13"))
+			throw new UnknownServerAPIVersionException(
+					"This codebase is not designed for API version " + version);
 	}
 
 	/**
@@ -146,6 +151,8 @@ public class RestClient {
 		private JsonCatalogItem fromJson;
 		private String uri;
 
+		private List<Annotation> cachedAnns = null;
+
 		private ItemImpl(JsonCatalogItem raw, String uri) {
 			fromJson = raw;
 			this.uri = uri;
@@ -201,11 +208,35 @@ public class RestClient {
 		}
 
 		public List<Annotation> getAnnotations() throws UnsupportedLDSchemaException {
-			ArrayList<Annotation> res = new ArrayList<Annotation>();
-			Map<String, RawDocument> rawDocCache = Collections.synchronizedMap(
-					new HashMap<String, RawDocument>(1));
-			for (Map<String, Object> jsonLdAnn : annotationsAsJSONLD()) 
-				res.add(new AnnotationImpl(jsonLdAnn, rawDocCache));
+			if (cachedAnns != null)
+				return cachedAnns;
+			// memoize since this is often slow, and also since clients might
+			// underlying
+			// call it mutple times for different types of annotations.
+			cachedAnns = new ArrayList<Annotation>();
+			Map<String, RawDocument> rawDocCache = Collections
+					.synchronizedMap(new HashMap<String, RawDocument>(1));
+			for (Map<String, Object> jsonLdAnn : annotationsAsJSONLD()) {
+				Annotation ann = null;
+				String annClass = (String) jsonLdAnn.get("@type");
+				if (annClass.equals(JSONLDKeys.TEXT_ANNOTATION_TYPE))
+					ann = new TextAnnotationImpl(jsonLdAnn, rawDocCache);
+				if (ann == null)
+					throw new UnsupportedLDSchemaException(String.format(
+							"Unknown annotation type %s", annClass));
+				cachedAnns.add(ann);
+			}
+			return cachedAnns;
+		}
+
+		public List<TextAnnotation> getTextAnnotations() throws UnsupportedLDSchemaException {
+			List<TextAnnotation> res = new ArrayList<TextAnnotation>();
+			for (Annotation ann : cachedAnns) {
+				try {
+					res.add((TextAnnotation) ann);
+				} catch (ClassCastException e) {
+				}
+			}
 			return res;
 		}
 
@@ -227,7 +258,8 @@ public class RestClient {
 		}
 
 		private Map<String, Object> getResolvedVersion(Object jsonObj) {
-			// use 'compact' here to resolve each annotation against the context,
+			// use 'compact' here to resolve each annotation against the
+			// context,
 			// rather than to shorten each annotation (which is its primary use)
 			// return (Map<String, Object>) JSONLD.compact(jsonObj, EMPTY_MAP);
 			// instead of above, use this workaround for HCSVLAB-654:
@@ -260,7 +292,7 @@ public class RestClient {
 			jsonAsMap.remove("@vocab");
 			jsonAsMap.put("@context", ctx);
 		}
-		
+
 		@SuppressWarnings("unchecked")
 		// helper purely to avoid verbose casts
 		private Map<String, Object> jmap(Object jsonObject) {
@@ -285,7 +317,7 @@ public class RestClient {
 
 	private class RawDocumentImpl implements RawDocument {
 		protected final String url;
-		
+
 		private RawDocumentImpl(String url) {
 			this.url = url;
 		}
@@ -299,7 +331,6 @@ public class RestClient {
 			return url;
 		}
 
-
 		/*
 		 * (non-Javadoc)
 		 * 
@@ -307,9 +338,9 @@ public class RestClient {
 		 */
 		public String rawText() {
 			return getTextInvocBuilder(getRawTextUrl()).get(String.class);
-		}		
+		}
 	}
-	
+
 	/**
 	 * A class representing a 'document' (version of an item) in the HCSvLab API
 	 * 
@@ -318,7 +349,7 @@ public class RestClient {
 	 */
 	private class DocumentImpl extends RawDocumentImpl implements Document {
 		private final JsonDocument fromJson;
-		
+
 		private DocumentImpl(JsonDocument raw) {
 			super(raw.getUrl());
 			fromJson = raw;
@@ -344,19 +375,19 @@ public class RestClient {
 
 	}
 
-
 	private class AnnotationImpl implements Annotation {
 
 		private Map<String, Object> ldValues;
 		private Map<String, RawDocument> rawDocCache;
-		
+
 		private String annId;
 		private String type;
 		private String label;
 		private double start;
 		private double end;
-		
-		private AnnotationImpl(Map<String, Object> raw, Map<String, RawDocument> docCache) throws UnsupportedLDSchemaException {
+
+		private AnnotationImpl(Map<String, Object> raw, Map<String, RawDocument> docCache)
+				throws UnsupportedLDSchemaException {
 			ldValues = raw;
 			rawDocCache = docCache;
 			initValues();
@@ -365,19 +396,20 @@ public class RestClient {
 		private Object getValue(String key) throws UnsupportedLDSchemaException {
 			Object res = ldValues.get(key);
 			if (res == null)
-				throw new UnsupportedLDSchemaException(String.format("No key {} found for annotation", key));
+				throw new UnsupportedLDSchemaException(String.format(
+						"No key {} found for annotation", key));
 			return res;
 		}
-		
+
 		private void initValues() throws UnsupportedLDSchemaException {
 			annId = (String) getValue("@id");
 			type = (String) getValue(JSONLDKeys.TYPE_ATTRIB);
 			label = (String) getValue(JSONLDKeys.LABEL_ATTRIB);
-			start =  (Double) getValue(JSONLDKeys.START_ATTRIB);
+			start = (Double) getValue(JSONLDKeys.START_ATTRIB);
 			end = (Double) getValue(JSONLDKeys.END_ATTRIB);
 			getValue(JSONLDKeys.ANNOTATES_ATTRIB); // check for key only
 		}
-		
+
 		public String getType() {
 			return type;
 		}
@@ -404,19 +436,47 @@ public class RestClient {
 			}
 			return annTgt;
 		}
-		
+
 		private String annTargetUrl() {
 			return (String) ldValues.get(JSONLDKeys.ANNOTATES_ATTRIB);
 		}
-		
 
 		public String getId() {
 			return annId;
 		}
 
 		public String toString() {
-			return String.format("<%s>%s(%s)@%1.1f,%1.1f->%s", getId(), getType(), getLabel(), 
+			return String.format("<%s>%s(%s)@%1.1f,%1.1f->%s", getId(), getType(), getLabel(),
 					getStart(), getEnd(), getAnnotationTarget().getRawTextUrl());
+		}
+
+	}
+
+	private class TextAnnotationImpl extends AnnotationImpl implements TextAnnotation {
+		private final int startOffset;
+		private final int endOffset;
+
+		private TextAnnotationImpl(Map<String, Object> raw, Map<String, RawDocument> docCache)
+				throws UnsupportedLDSchemaException {
+			super(raw, docCache);
+			startOffset = (int) getStart();
+			endOffset = (int) getEnd();
+			if (Math.abs(startOffset - getStart()) + Math.abs(endOffset - getEnd()) > 0.0)
+				throw new UnsupportedLDSchemaException(String.format(
+						"Invalid non-integer text offsets %0.2f, %0.2f", getStart(), getEnd()));
+		}
+
+		public int getStartOffset() {
+			return (int) getStart();
+		}
+
+		public int getEndOffset() {
+			return (int) getEnd();
+		}
+
+		public String toString() {
+			return String.format("<%s>%s(%s)@%d,%d->%s", getId(), getType(), getLabel(),
+					getStartOffset(), getEndOffset(), getAnnotationTarget().getRawTextUrl());
 		}
 
 	}

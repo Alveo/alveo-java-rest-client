@@ -36,13 +36,22 @@ public interface Item {
 	 */
 	public Map<String, String> getMetadata();
 	
-	/** Get the (possibly empty) list of association annotations.
+	/** Get the (possibly empty) list of associated annotations.
 	 * 
 	 * @return
 	 * @throws UnsupportedLDSchemaException if the schema cannot be interpreted, meaning it has
 	 *  a stucture which this code version cannot map to a POJO
 	 */
 	public List<Annotation> getAnnotations() throws UnsupportedLDSchemaException;
+
+	/** Get the (possibly empty) list of associated text annotations.
+	 * 
+	 * @return
+	 * @throws UnsupportedLDSchemaException if the schema cannot be interpreted, meaning it has
+	 *  a stucture which this code version cannot map to a POJO
+	 */
+	public List<TextAnnotation> getTextAnnotations() throws UnsupportedLDSchemaException;
+
 	
 	/** Get the (possibly empty) list of association annotations, returning the 
 	 * JSONLD representation of each annotation. In this representation, the
