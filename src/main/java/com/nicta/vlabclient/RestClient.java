@@ -5,6 +5,7 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import javax.annotation.Nullable;
 
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
@@ -239,7 +240,7 @@ public class RestClient {
 
 		public List<TextAnnotation> getTextAnnotations() throws UnsupportedLDSchemaException {
 			List<TextAnnotation> res = new ArrayList<TextAnnotation>();
-			for (Annotation ann : cachedAnns) {
+			for (Annotation ann : getAnnotations()) {
 				try {
 					res.add((TextAnnotation) ann);
 				} catch (ClassCastException e) {
@@ -293,7 +294,6 @@ public class RestClient {
 		 * Fix (hopefully temp) for problem documented at:
 		 * https://jira.intersect.org.au/browse/HCSVLAB-651
 		 */
-		@SuppressWarnings("unchecked")
 		private void fixJsonLdContextHack(Object jsonObject) {
 			Map<String, Object> jsonAsMap = jmap(jsonObject);
 			Object ctx = jsonAsMap.get("@vocab");
@@ -360,6 +360,9 @@ public class RestClient {
 			docType = raw.getType();
 			docSize = raw.getSize();
 			docUrl = raw.getUrl();
+			if (docType == null || docUrl == null) 
+				throw new MalformedJSONException(
+						String.format("An expected value was missing from %s", raw));
 		}
 
 		private DocumentImpl(String url) {
@@ -384,13 +387,9 @@ public class RestClient {
 		 * 
 		 * @see com.nicta.vlabclient.Document#getSize()
 		 */
+		@Nullable
 		public String getSize() throws UnknownValueException {
-			if (docSize == null)
-				throw new UnknownValueException(
-						"Document size not explicitly set; this may be because the document"
-								+ " comes from an annotation");
 			return docSize;
-
 		}
 
 		public String getDataUrl() {
