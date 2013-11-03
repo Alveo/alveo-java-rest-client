@@ -1,5 +1,7 @@
 package com.nicta.vlabclient.entity;
 
+import javax.annotation.Nullable;
+
 /** A representation of a 'document' (version of an item) in the HCSvLab API with associated metadata
  * 
  * @author andrew.mackinlay
@@ -24,8 +26,10 @@ public interface Document {
 
 	/** Get the document size
 	 * 
-	 * @return A string representation of the document size, such as "1.8kB"
+	 * @return A string representation of the document size, such as "1.8kB" or null if
+	 * that is what is returned by the underlying JSON
 	 */
+	@Nullable
 	public String getSize() throws UnknownValueException;
 
 
