@@ -13,8 +13,10 @@ public interface Item {
 	/** Return the documents associated with this item */
 	public List<Document> documents();
 	
+	/** Get the text documents which are linked to this item */
 	public List<TextDocument> textDocuments();
 	
+	/** Get the audio documents which are linked to this item */
 	public List<AudioDocument> audioDocuments();
 
 	/** Return the URI (a valid REST URI) from which this item was retrieved */
@@ -42,7 +44,7 @@ public interface Item {
 	
 	/** Get the (possibly empty) list of associated annotations.
 	 * 
-	 * @return
+	 * @return The annotations which are linked to this item.
 	 * @throws UnsupportedLDSchemaException if the schema cannot be interpreted, meaning it has
 	 *  a stucture which this code version cannot map to a POJO
 	 */
@@ -50,12 +52,21 @@ public interface Item {
 
 	/** Get the (possibly empty) list of associated text annotations.
 	 * 
-	 * @return
+	 * @return The text annotations which are linked to this item.
 	 * @throws UnsupportedLDSchemaException if the schema cannot be interpreted, meaning it has
 	 *  a stucture which this code version cannot map to a POJO
 	 */
 	public List<TextAnnotation> getTextAnnotations() throws UnsupportedLDSchemaException;
 
+	/** Get the (possibly empty) list of associated text annotations.
+	 * 
+	 * @return The text annotations which are linked to this item.
+	 * @throws UnsupportedLDSchemaException if the schema cannot be interpreted, meaning it has
+	 *  a stucture which this code version cannot map to a POJO
+	 */
+	public List<AudioAnnotation> getAudioAnnotations() throws UnsupportedLDSchemaException;
+
+	
 	
 	/** Get the (possibly empty) list of association annotations, returning the 
 	 * JSONLD representation of each annotation. In this representation, the

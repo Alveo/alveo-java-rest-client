@@ -24,6 +24,7 @@ import com.nicta.vlabclient.JsonApi.JsonItemList;
 import com.nicta.vlabclient.JsonApi.VersionResult;
 import com.nicta.vlabclient.entity.Annotation;
 import com.nicta.vlabclient.entity.Annotation.JSONLDKeys;
+import com.nicta.vlabclient.entity.AudioAnnotation;
 import com.nicta.vlabclient.entity.AudioDocument;
 import com.nicta.vlabclient.entity.Document;
 import com.nicta.vlabclient.entity.Item;
@@ -230,9 +231,11 @@ public class RestClient {
 				String annClass = (String) jsonLdAnn.get("@type");
 				if (annClass.equals(JSONLDKeys.TEXT_ANNOTATION_TYPE))
 					ann = new TextAnnotationImpl(jsonLdAnn, rawDocCache);
-				if (ann == null)
-					throw new UnsupportedLDSchemaException(String.format(
-							"Unknown annotation type %s", annClass));
+				else
+					ann = new AudioAnnotationImpl(jsonLdAnn, rawDocCache);
+//				if (ann == null)
+//					throw new UnsupportedLDSchemaException(String.format(
+//							"Unknown annotation type %s", annClass));
 				cachedAnns.add(ann);
 			}
 			return cachedAnns;
@@ -249,6 +252,19 @@ public class RestClient {
 			return res;
 		}
 
+		@Override
+		public List<AudioAnnotation> getAudioAnnotations() throws UnsupportedLDSchemaException {
+			List<AudioAnnotation> res = new ArrayList<AudioAnnotation>();
+			for (Annotation ann : getAnnotations()) {
+				try {
+					res.add((AudioAnnotation) ann);
+				} catch (ClassCastException e) {
+				}
+			}
+			return res;
+		}
+
+		
 		@SuppressWarnings("unchecked")
 		public List<Map<String, Object>> annotationsAsJSONLD() {
 			Object jsonObj = getJsonObject();
@@ -343,6 +359,7 @@ public class RestClient {
 			}
 			return docs;
 		}
+
 	}
 
 	/**
@@ -549,6 +566,29 @@ public class RestClient {
 		@Override
 		protected Document getNewAnnotationTarget() {
 			return new TextDocumentImpl(annTargetUrl());
+		}
+
+	}
+	
+	private class AudioAnnotationImpl extends AnnotationImpl implements AudioAnnotation {
+
+		private AudioAnnotationImpl(Map<String, Object> raw, Map<String, Document> docCache)
+				throws UnsupportedLDSchemaException {
+			super(raw, docCache);
+		}
+		
+		public String toString() {
+			return String.format("<%s>%s(%s)@%1.1f,%1.1f->%s", getId(), getType(), getLabel(),
+					getStart(), getEnd(), getAnnotationTarget().getDataUrl());
+		}
+
+		public AudioDocument getAudioAnnotationTarget() {
+			return (AudioDocument) getAnnotationTarget();
+		}
+
+		@Override
+		protected Document getNewAnnotationTarget() {
+			return new AudioDocumentImpl(annTargetUrl());
 		}
 
 	}

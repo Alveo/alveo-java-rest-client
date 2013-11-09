@@ -10,9 +10,10 @@ import javax.annotation.Nullable;
 public interface Document {
 	/** Get the URL where the data is stored. 
 	 * 
-	 * The {@link #rawText()} method is probably more useful to end users
+	 * The data retrieval methods on the subclasses ({@link TextDocument#rawText()} 
+	 * and {@link AudioDocument#getData()}) are probably more useful to end users
 	 * 
-	 * @return The URL from which the raw text can be retrieved
+	 * @return The URL from which the raw data can be retrieved
 	 */
 	public String getDataUrl();
 
