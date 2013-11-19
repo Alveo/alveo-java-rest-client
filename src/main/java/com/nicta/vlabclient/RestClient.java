@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.Map;
 import javax.annotation.Nullable;
 
+import javax.ws.rs.NotFoundException;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.Invocation;
@@ -22,17 +23,8 @@ import com.nicta.vlabclient.JsonApi.JsonCatalogItem;
 import com.nicta.vlabclient.JsonApi.JsonDocument;
 import com.nicta.vlabclient.JsonApi.JsonItemList;
 import com.nicta.vlabclient.JsonApi.VersionResult;
-import com.nicta.vlabclient.entity.Annotation;
+import com.nicta.vlabclient.entity.*;
 import com.nicta.vlabclient.entity.Annotation.JSONLDKeys;
-import com.nicta.vlabclient.entity.AudioAnnotation;
-import com.nicta.vlabclient.entity.AudioDocument;
-import com.nicta.vlabclient.entity.Document;
-import com.nicta.vlabclient.entity.Item;
-import com.nicta.vlabclient.entity.ItemList;
-import com.nicta.vlabclient.entity.TextDocument;
-import com.nicta.vlabclient.entity.TextAnnotation;
-import com.nicta.vlabclient.entity.UnknownValueException;
-import com.nicta.vlabclient.entity.UnsupportedLDSchemaException;
 
 /**
  * The primary class to use to interact with the HCS vLab REST API - use this to
@@ -73,7 +65,7 @@ public class RestClient {
 		VersionResult verRes = getJsonInvocBuilder(serverBaseUri + "/version").get(
 				VersionResult.class);
 		String version = verRes.apiVersion;
-		if (!version.equals("2.0") && !version.startsWith("Sprint_13"))
+		if (!version.equals("2.0") && !version.startsWith("Sprint_13") && !version.startsWith("HEAD ("))
 			throw new UnknownServerAPIVersionException(
 					"This codebase is not designed for API version " + version);
 	}
@@ -233,9 +225,9 @@ public class RestClient {
 					ann = new TextAnnotationImpl(jsonLdAnn, rawDocCache);
 				else
 					ann = new AudioAnnotationImpl(jsonLdAnn, rawDocCache);
-//				if (ann == null)
-//					throw new UnsupportedLDSchemaException(String.format(
-//							"Unknown annotation type %s", annClass));
+				// if (ann == null)
+				// throw new UnsupportedLDSchemaException(String.format(
+				// "Unknown annotation type %s", annClass));
 				cachedAnns.add(ann);
 			}
 			return cachedAnns;
@@ -264,11 +256,9 @@ public class RestClient {
 			return res;
 		}
 
-		
 		@SuppressWarnings("unchecked")
 		public List<Map<String, Object>> annotationsAsJSONLD() {
 			Object jsonObj = getJsonObject();
-			fixJsonLdContextHack(jsonObj); // XXX: temp hack
 			Map<String, Object> compacted = getResolvedVersion(jsonObj);
 			Map<String, Object> annWrapper = jmap(compacted.get(JSONLDKeys.ANNOTATION));
 			Map<String, Object> commonProps = jmap(compacted.get(JSONLDKeys.COMMON_PROPERTIES));
@@ -305,18 +295,7 @@ public class RestClient {
 				throw new MalformedJSONException(e);
 			}
 		}
-
-		/*
-		 * Fix (hopefully temp) for problem documented at:
-		 * https://jira.intersect.org.au/browse/HCSVLAB-651
-		 */
-		private void fixJsonLdContextHack(Object jsonObject) {
-			Map<String, Object> jsonAsMap = jmap(jsonObject);
-			Object ctx = jsonAsMap.get("@vocab");
-			jsonAsMap.remove("@vocab");
-			jsonAsMap.put("@context", ctx);
-		}
-
+		
 		@SuppressWarnings("unchecked")
 		// helper purely to avoid verbose casts
 		private Map<String, Object> jmap(Object jsonObject) {
@@ -377,9 +356,9 @@ public class RestClient {
 			docType = raw.getType();
 			docSize = raw.getSize();
 			docUrl = raw.getUrl();
-			if (docType == null || docUrl == null) 
-				throw new MalformedJSONException(
-						String.format("An expected value was missing from %s", raw));
+			if (docType == null || docUrl == null)
+				throw new MalformedJSONException(String.format(
+						"An expected value was missing from %s", raw));
 		}
 
 		private DocumentImpl(String url) {
@@ -569,14 +548,14 @@ public class RestClient {
 		}
 
 	}
-	
+
 	private class AudioAnnotationImpl extends AnnotationImpl implements AudioAnnotation {
 
 		private AudioAnnotationImpl(Map<String, Object> raw, Map<String, Document> docCache)
 				throws UnsupportedLDSchemaException {
 			super(raw, docCache);
 		}
-		
+
 		public String toString() {
 			return String.format("<%s>%s(%s)@%1.1f,%1.1f->%s", getId(), getType(), getLabel(),
 					getStart(), getEnd(), getAnnotationTarget().getDataUrl());
@@ -613,8 +592,13 @@ public class RestClient {
 	 * @return the item list object with the given ID
 	 * @throws Exception
 	 */
-	public ItemList getItemList(String itemListId) throws Exception {
-		return getItemListFromUri(getItemListUri(itemListId));
+	public ItemList getItemList(String itemListId) throws EntityNotFoundException {
+		try {
+			return getItemListFromUri(getItemListUri(itemListId));
+		} catch (NotFoundException e) {
+			throw new EntityNotFoundException("Could not find entity with ID " + itemListId);
+		}
+
 	}
 
 	/**
@@ -623,12 +607,13 @@ public class RestClient {
 	 * @param itemListUri
 	 *            the fully qualified URI for the REST API
 	 * @return the item list object with the given ID
+	 * @throws EntityNotFoundException
 	 * @throws Exception
 	 * @see #getItemList(String)
 	 */
-	public ItemList getItemListFromUri(String itemListUri) throws Exception {
-		return new ItemListImpl(getJsonInvocBuilder(itemListUri).get(JsonItemList.class),
-				itemListUri);
+	public ItemList getItemListFromUri(String itemListUri) {
+		JsonItemList itemListJson = getJsonInvocBuilder(itemListUri).get(JsonItemList.class);
+		return new ItemListImpl(itemListJson, itemListUri);
 	}
 
 	/**
@@ -638,11 +623,16 @@ public class RestClient {
 	 * @param itemListId
 	 *            the ID of the item list
 	 * @return unformatted JSON from the HCS vLab REST server
-	 * @throws Exception
+	 * @throws EntityNotFoundException
+	 *             If the item list cannot be found
 	 * @see #getItemList(String)
 	 */
-	public String getItemListJson(String itemListId) throws Exception {
-		return getItemListJsonFromUri(getItemListUri(itemListId));
+	public String getItemListJson(String itemListId) throws EntityNotFoundException {
+		try {
+			return getItemListJsonFromUri(getItemListUri(itemListId));
+		} catch (NotFoundException e) {
+			throw new EntityNotFoundException("Could not find entity with ID " + itemListId);
+		}
 	}
 
 	/**
@@ -655,7 +645,7 @@ public class RestClient {
 	 * @throws Exception
 	 * @see RestClient#getItemListJson(String)
 	 */
-	public String getItemListJsonFromUri(String itemListUri) throws Exception {
+	public String getItemListJsonFromUri(String itemListUri) {
 		return getJsonInvocBuilder(itemListUri).get(String.class);
 	}
 

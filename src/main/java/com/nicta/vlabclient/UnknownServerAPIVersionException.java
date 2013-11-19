@@ -1,6 +1,6 @@
 package com.nicta.vlabclient;
 
-public class UnknownServerAPIVersionException extends Exception {
+public class UnknownServerAPIVersionException extends RestClientException {
 
 	public UnknownServerAPIVersionException() {
 		// TODO Auto-generated constructor stub

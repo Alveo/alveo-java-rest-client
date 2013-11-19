@@ -1,6 +1,8 @@
 package com.nicta.vlabclient.entity;
 
-public class UnknownValueException extends Exception {
+import com.nicta.vlabclient.RestClientException;
+
+public class UnknownValueException extends RestClientException {
 
 	public UnknownValueException() {
 	}
