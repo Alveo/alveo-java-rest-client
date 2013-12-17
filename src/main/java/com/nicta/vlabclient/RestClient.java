@@ -65,7 +65,7 @@ public class RestClient {
 		VersionResult verRes = getJsonInvocBuilder(serverBaseUri + "/version").get(
 				VersionResult.class);
 		String version = verRes.apiVersion;
-		if (!version.equals("2.0") && !version.startsWith("Sprint_13") && !version.startsWith("HEAD ("))
+		if (!version.equals("2.0") && !version.startsWith("Sprint_") && !version.startsWith("HEAD ("))
 			throw new UnknownServerAPIVersionException(
 					"This codebase is not designed for API version " + version);
 	}
