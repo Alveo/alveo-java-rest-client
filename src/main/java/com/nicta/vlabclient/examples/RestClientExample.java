@@ -50,14 +50,14 @@ public class RestClientExample {
 				// System.out.println(String.format("\t%s(%s)@<%1.1f:%1.1f>",
 				// ann.getType(), ann.getLabel(),
 				// ann.getStart(), ann.getEnd()));
-				// for (Map<String, Object> ann : ci.annotationsAsJSONLD()) {
-				// for (Map.Entry<String, Object> annEntry : ann.entrySet())
-				// System.out.println(String.format("\t%s:%s",
-				// annEntry.getKey(), annEntry.getValue()));
-				// System.out.println("\t,");
-				// }
 				for (Annotation ann : ci.getTextAnnotations()) {
 					System.out.println("\t" + ann);
+				}
+				for (Map<String, Object> ann : ci.annotationsAsJSONLD()) {
+					for (Map.Entry<String, Object> annEntry : ann.entrySet())
+						System.out.println(String.format("\t%s:%s", annEntry.getKey(),
+								annEntry.getValue()));
+					System.out.println("\t,");
 				}
 			}
 		} catch (EntityNotFoundException e) {
