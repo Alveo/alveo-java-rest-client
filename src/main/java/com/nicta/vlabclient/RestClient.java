@@ -7,7 +7,9 @@ import java.util.List;
 import java.util.Map;
 import javax.annotation.Nullable;
 
+import javax.ws.rs.NotAuthorizedException;
 import javax.ws.rs.NotFoundException;
+import javax.ws.rs.ProcessingException;
 import javax.ws.rs.client.Client;
 import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.Invocation;
@@ -53,19 +55,30 @@ public class RestClient {
 	 * @throws UnknownServerAPIVersionException
 	 *             If the server's reported API version is incompatible with
 	 *             this code
+	 * @throws InvalidServerAddressException
+	 *             If it is not possible to connect to the server, probably
+	 *             because of an invalid address
 	 */
-	public RestClient(String serverBaseUri, String apiKey) throws UnknownServerAPIVersionException {
+	public RestClient(String serverBaseUri, String apiKey) throws UnknownServerAPIVersionException,
+			InvalidServerAddressException {
 		this.serverBaseUri = serverBaseUri;
 		this.apiKey = apiKey;
 		client = ClientBuilder.newClient();
 		checkVersion();
 	}
 
-	private void checkVersion() throws UnknownServerAPIVersionException {
-		VersionResult verRes = getJsonInvocBuilder(serverBaseUri + "/version").get(
-				VersionResult.class);
+	private void checkVersion() throws InvalidServerAddressException,
+			UnknownServerAPIVersionException {
+		VersionResult verRes;
+		try {
+			verRes = getJsonInvocBuilder(serverBaseUri + "/version").get(VersionResult.class);
+		} catch (ProcessingException e) {
+			throw new InvalidServerAddressException("Server URI " + serverBaseUri
+					+ " may be invalid", e);
+		}
 		String version = verRes.apiVersion;
-		if (!version.equals("2.0") && !version.startsWith("Sprint_") && !version.startsWith("HEAD ("))
+		if (!version.equals("2.0") && !version.startsWith("Sprint_")
+				&& !version.startsWith("HEAD ("))
 			throw new UnknownServerAPIVersionException(
 					"This codebase is not designed for API version " + version);
 	}
@@ -278,12 +291,12 @@ public class RestClient {
 			// context,
 			// rather than to shorten each annotation (which is its primary use)
 			try {
-				 return (Map<String, Object>) JSONLD.compact(jsonObj, EMPTY_MAP);
+				return (Map<String, Object>) JSONLD.compact(jsonObj, EMPTY_MAP);
 			} catch (JSONLDProcessingError e) {
 				throw new MalformedJSONException(e);
 			}
 		}
-		
+
 		@SuppressWarnings("unchecked")
 		// helper purely to avoid verbose casts
 		private Map<String, Object> jmap(Object jsonObject) {
@@ -578,9 +591,13 @@ public class RestClient {
 	 * @param itemListId
 	 *            the ID of the item list
 	 * @return the item list object with the given ID
-	 * @throws Exception
+	 * @throws EntityNotFoundException
+	 *             If the item list cannot be found
+	 * @throws UnauthorizedAPIKeyException
+	 *             if the API key does not permit access
 	 */
-	public ItemList getItemList(String itemListId) throws EntityNotFoundException {
+	public ItemList getItemList(String itemListId) throws EntityNotFoundException,
+			UnauthorizedAPIKeyException {
 		try {
 			return getItemListFromUri(getItemListUri(itemListId));
 		} catch (NotFoundException e) {
@@ -596,12 +613,19 @@ public class RestClient {
 	 *            the fully qualified URI for the REST API
 	 * @return the item list object with the given ID
 	 * @throws EntityNotFoundException
-	 * @throws Exception
+	 *             If the item list cannot be found
+	 * @throws UnauthorizedAPIKeyException
+	 *             if the API key does not permit access
 	 * @see #getItemList(String)
 	 */
-	public ItemList getItemListFromUri(String itemListUri) {
-		JsonItemList itemListJson = getJsonInvocBuilder(itemListUri).get(JsonItemList.class);
-		return new ItemListImpl(itemListJson, itemListUri);
+	public ItemList getItemListFromUri(String itemListUri) throws UnauthorizedAPIKeyException {
+		try {
+			JsonItemList itemListJson = getJsonInvocBuilder(itemListUri).get(JsonItemList.class);
+			return new ItemListImpl(itemListJson, itemListUri);
+		} catch (NotAuthorizedException e) {
+			throw new UnauthorizedAPIKeyException("Provided API key " + apiKey
+					+ " was not accepted by the server");
+		}
 	}
 
 	/**
@@ -613,9 +637,12 @@ public class RestClient {
 	 * @return unformatted JSON from the HCS vLab REST server
 	 * @throws EntityNotFoundException
 	 *             If the item list cannot be found
+	 * @throws UnauthorizedAPIKeyException
+	 *             if the API key does not permit access
 	 * @see #getItemList(String)
 	 */
-	public String getItemListJson(String itemListId) throws EntityNotFoundException {
+	public String getItemListJson(String itemListId) throws EntityNotFoundException,
+			UnauthorizedAPIKeyException {
 		try {
 			return getItemListJsonFromUri(getItemListUri(itemListId));
 		} catch (NotFoundException e) {
@@ -630,11 +657,17 @@ public class RestClient {
 	 * @param itemListUri
 	 *            the fully qualified URI for the REST API
 	 * @return unformatted JSON from the HCS vLab REST server
-	 * @throws Exception
+	 * @throws UnauthorizedAPIKeyException
+	 *             if the API key does not permit access
 	 * @see RestClient#getItemListJson(String)
 	 */
-	public String getItemListJsonFromUri(String itemListUri) {
-		return getJsonInvocBuilder(itemListUri).get(String.class);
+	public String getItemListJsonFromUri(String itemListUri) throws UnauthorizedAPIKeyException {
+		try {
+			return getJsonInvocBuilder(itemListUri).get(String.class);
+		} catch (NotAuthorizedException e) {
+			throw new UnauthorizedAPIKeyException("Provided API key " + apiKey
+					+ " was not accepted by the server");
+		}
 	}
 
 	private Invocation.Builder getJsonInvocBuilder(String uri) {
