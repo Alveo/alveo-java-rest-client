@@ -160,7 +160,7 @@ public class RestClient {
 		private JsonCatalogItem fromJson;
 		private String uri;
 
-		private List<Annotation> cachedAnns = null;
+		private List<Map<String, Object>> cachedJsonLdAnns = null;
 
 		private ItemImpl(JsonCatalogItem raw, String uri) {
 			fromJson = raw;
@@ -223,12 +223,7 @@ public class RestClient {
 		}
 
 		public List<Annotation> getAnnotations() throws UnsupportedLDSchemaException {
-			if (cachedAnns != null)
-				return cachedAnns;
-			// memoize since this is often slow, and also since clients might
-			// underlying
-			// call it mutple times for different types of annotations.
-			cachedAnns = new ArrayList<Annotation>();
+			List<Annotation> anns = new ArrayList<Annotation>();
 			Map<String, Document> rawDocCache = Collections
 					.synchronizedMap(new HashMap<String, Document>(1));
 			for (Map<String, Object> jsonLdAnn : annotationsAsJSONLD()) {
@@ -241,9 +236,9 @@ public class RestClient {
 				// if (ann == null)
 				// throw new UnsupportedLDSchemaException(String.format(
 				// "Unknown annotation type %s", annClass));
-				cachedAnns.add(ann);
+				anns.add(ann);
 			}
-			return cachedAnns;
+			return anns;
 		}
 
 		public List<TextAnnotation> getTextAnnotations() throws UnsupportedLDSchemaException {
@@ -271,18 +266,22 @@ public class RestClient {
 
 		@SuppressWarnings("unchecked")
 		public List<Map<String, Object>> annotationsAsJSONLD() {
+			// memoize since this is often slow, and also since clients might
+			// underlyingly call it mutple times for different types of annotations.
+			if (cachedJsonLdAnns != null)
+				return cachedJsonLdAnns;
+			cachedJsonLdAnns = new ArrayList<Map<String, Object>>();
 			Object jsonObj = getJsonObject();
 			Map<String, Object> compacted = getResolvedVersion(jsonObj);
 			Map<String, Object> annWrapper = jmap(compacted.get(JSONLDKeys.ANNOTATION));
 			Map<String, Object> commonProps = jmap(compacted.get(JSONLDKeys.COMMON_PROPERTIES));
 			List<Object> annObjects = (List<Object>) annWrapper.get("@list");
-			List<Map<String, Object>> res = new ArrayList<Map<String, Object>>();
 			for (Object annObj : annObjects) {
 				Map<String, Object> annAsMap = jmap(annObj);
 				annAsMap.putAll(commonProps);
-				res.add(annAsMap);
+				cachedJsonLdAnns.add(annAsMap);
 			}
-			return res;
+			return cachedJsonLdAnns;
 		}
 
 		@SuppressWarnings("unchecked")
