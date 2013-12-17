@@ -2,6 +2,9 @@ package com.nicta.vlabclient;
 
 import java.util.Map;
 
+import org.junit.Ignore;
+
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /** A class to hold struct-like classes to represent JSON data from
@@ -35,6 +38,7 @@ class JsonApi {
 		private String[] items;
 	}
 
+	@JsonIgnoreProperties({"@context"}) //workaround for https://track.intersect.org.au/browse/HCSVLAB-741
 	static class JsonCatalogItem {
 		@JsonProperty(value = "catalog_url")
 		private String catalogUrl;
@@ -74,6 +78,8 @@ class JsonApi {
 		public String getUrl() {
 			return url;
 		}
+		
+		@JsonProperty(value = "dc:type")
 		public String getType() {
 			return type;
 		}
