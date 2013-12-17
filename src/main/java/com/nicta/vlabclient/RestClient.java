@@ -140,12 +140,10 @@ public class RestClient {
 		 * 
 		 * @see com.nicta.vlabclient.ItemList#getCatalogItems()
 		 */
-		public List<Item> getCatalogItems() {
+		public List<Item> getCatalogItems() throws UnauthorizedAPIKeyException {
 			List<Item> cis = new ArrayList<Item>();
-			for (String itemUri : itemUris()) {
-				JsonCatalogItem jci = getJsonInvocBuilder(itemUri).get(JsonCatalogItem.class);
-				cis.add(new ItemImpl(jci, itemUri));
-			}
+			for (String itemUri : itemUris()) 
+				cis.add(getItemByUri(itemUri));
 			return cis;
 		}
 	}
@@ -602,9 +600,47 @@ public class RestClient {
 		} catch (NotFoundException e) {
 			throw new EntityNotFoundException("Could not find entity with ID " + itemListId);
 		}
-
 	}
 
+	/**
+	 * Get the catalog item with the supplied ID
+	 * 
+	 * @param itemId
+	 *            the ID of the item, such as 'hcsvlab:456'
+	 * @return the requested item
+	 * @throws EntityNotFoundException
+	 *             If the item with the supplied ID could not be found 
+	 * @throws UnauthorizedAPIKeyException
+	 *             if the API key does not permit access
+	 */
+	public Item getItem(String itemId) throws EntityNotFoundException, UnauthorizedAPIKeyException {
+		String itemUri = serverBaseUri + "catalog/" + itemId;
+		try {
+			return getItemByUri(itemUri);
+		} catch (NotFoundException e) {
+			throw new EntityNotFoundException("Could not find item with URI " + itemUri);
+		}
+	}
+	
+	/**
+	 * Get the catalog item at the supplied URI
+	 * 
+	 * @param itemId
+	 *            the fully qualified URI of the item, such as 'http://vlab.example.org/catalog/hcsvlab:456'
+	 * @return the requested item
+	 * @throws UnauthorizedAPIKeyException
+	 *             if the API key does not permit access
+	 */
+	public Item getItemByUri(String itemUri) throws UnauthorizedAPIKeyException {
+		try {
+			return new ItemImpl(getJsonInvocBuilder(itemUri).get(JsonCatalogItem.class), itemUri);
+		} catch (NotAuthorizedException e) {
+			throw new UnauthorizedAPIKeyException("Provided API key " + apiKey
+					+ " was not accepted by the server");
+		}
+	}
+
+	
 	/**
 	 * Get the item list from the supplied rest URI
 	 * 
