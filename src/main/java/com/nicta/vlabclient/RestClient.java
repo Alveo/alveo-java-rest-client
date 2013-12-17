@@ -272,25 +272,13 @@ public class RestClient {
 			return res;
 		}
 
+		@SuppressWarnings("unchecked")
 		private Map<String, Object> getResolvedVersion(Object jsonObj) {
 			// use 'compact' here to resolve each annotation against the
 			// context,
 			// rather than to shorten each annotation (which is its primary use)
-			// return (Map<String, Object>) JSONLD.compact(jsonObj, EMPTY_MAP);
-			// instead of above, use this workaround for HCSVLAB-654:
-			Map<String, Object> jsonAsMap = jmap(jsonObj);
-			String ctxUrl = (String) jsonAsMap.remove("@context");
-			String ctxString = getJsonInvocBuilder(ctxUrl).get(String.class);
-			Map<String, Object> outerCtxMap;
 			try {
-				outerCtxMap = jmap(JSONUtils.fromString(ctxString));
-				Object ctx = outerCtxMap.get("@context");
-				jsonAsMap.put("@context", ctx);
-				return jmap(JSONLD.compact(jsonAsMap, EMPTY_MAP, new Options("", true)));
-			} catch (JsonParseException e) {
-				throw new MalformedJSONException(e);
-			} catch (JsonMappingException e) {
-				throw new MalformedJSONException(e);
+				 return (Map<String, Object>) JSONLD.compact(jsonObj, EMPTY_MAP);
 			} catch (JSONLDProcessingError e) {
 				throw new MalformedJSONException(e);
 			}
