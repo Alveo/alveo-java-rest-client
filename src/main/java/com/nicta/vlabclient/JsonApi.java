@@ -2,8 +2,6 @@ package com.nicta.vlabclient;
 
 import java.util.Map;
 
-import org.junit.Ignore;
-
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
