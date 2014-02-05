@@ -5,28 +5,45 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import javax.annotation.Nullable;
 
+import javax.annotation.Nullable;
 import javax.ws.rs.NotAuthorizedException;
 import javax.ws.rs.NotFoundException;
 import javax.ws.rs.ProcessingException;
 import javax.ws.rs.client.Client;
-import javax.ws.rs.client.ClientBuilder;
 import javax.ws.rs.client.Invocation;
 import javax.ws.rs.core.MediaType;
+
+import org.apache.http.client.HttpClient;
+import org.apache.http.impl.client.SystemDefaultHttpClient;
+import org.apache.http.params.BasicHttpParams;
+import org.apache.http.params.CoreConnectionPNames;
+import org.apache.http.params.HttpParams;
+import org.jboss.resteasy.client.jaxrs.ClientHttpEngine;
+import org.jboss.resteasy.client.jaxrs.ResteasyClientBuilder;
+import org.jboss.resteasy.client.jaxrs.engines.ApacheHttpClient4Engine;
 
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.github.jsonldjava.core.JSONLD;
 import com.github.jsonldjava.core.JSONLDProcessingError;
-import com.github.jsonldjava.core.Options;
 import com.github.jsonldjava.utils.JSONUtils;
 import com.nicta.vlabclient.JsonApi.JsonCatalogItem;
 import com.nicta.vlabclient.JsonApi.JsonDocument;
 import com.nicta.vlabclient.JsonApi.JsonItemList;
 import com.nicta.vlabclient.JsonApi.VersionResult;
-import com.nicta.vlabclient.entity.*;
+import com.nicta.vlabclient.entity.Annotation;
 import com.nicta.vlabclient.entity.Annotation.JSONLDKeys;
+import com.nicta.vlabclient.entity.AudioAnnotation;
+import com.nicta.vlabclient.entity.AudioDocument;
+import com.nicta.vlabclient.entity.Document;
+import com.nicta.vlabclient.entity.EntityNotFoundException;
+import com.nicta.vlabclient.entity.Item;
+import com.nicta.vlabclient.entity.ItemList;
+import com.nicta.vlabclient.entity.TextAnnotation;
+import com.nicta.vlabclient.entity.TextDocument;
+import com.nicta.vlabclient.entity.UnknownValueException;
+import com.nicta.vlabclient.entity.UnsupportedLDSchemaException;
 
 /**
  * The primary class to use to interact with the HCS vLab REST API - use this to
@@ -37,11 +54,11 @@ import com.nicta.vlabclient.entity.Annotation.JSONLDKeys;
  */
 public class RestClient {
 
-	private String serverBaseUri;
-	private String apiKey;
-	private Client client;
+	private final String serverBaseUri;
+	private final String apiKey;
+	private final Client client;
 
-	private static Map<String, Object> EMPTY_MAP = new HashMap<String, Object>();
+	private static final Map<String, Object> EMPTY_MAP = new HashMap<String, Object>();
 
 	/**
 	 * Construct a new REST client instance
@@ -63,8 +80,18 @@ public class RestClient {
 			InvalidServerAddressException {
 		this.serverBaseUri = serverBaseUri;
 		this.apiKey = apiKey;
-		client = ClientBuilder.newClient();
+		// use this HTTP client which respects JVM proxy settings
+		// (this doesn't do any harm, and helps in testing with Betamax)
+		ClientHttpEngine httpEngine = new ApacheHttpClient4Engine(newHttpClient());
+//		// instead of the more usual ClientBuilder.newClient(), we do this to specify the engine:
+		client = new ResteasyClientBuilder().httpEngine(httpEngine).build();
 		checkVersion();
+	}
+	
+	private HttpClient newHttpClient() {
+		HttpParams params = new BasicHttpParams();
+		params.setIntParameter(CoreConnectionPNames.CONNECTION_TIMEOUT, 60000); // 60 sec timeout since ann retrieval can be slow
+		return new SystemDefaultHttpClient(params);
 	}
 
 	private void checkVersion() throws InvalidServerAddressException,
@@ -91,8 +118,8 @@ public class RestClient {
 	 * 
 	 */
 	private class ItemListImpl implements ItemList {
-		private JsonItemList fromJson;
-		private String uri;
+		private final JsonItemList fromJson;
+		private final String uri;
 
 		private ItemListImpl(JsonItemList raw, String uri) {
 			fromJson = raw;
@@ -155,8 +182,8 @@ public class RestClient {
 	 * 
 	 */
 	private class ItemImpl implements Item {
-		private JsonCatalogItem fromJson;
-		private String uri;
+		private final JsonCatalogItem fromJson;
+		private final String uri;
 
 		private List<Map<String, Object>> cachedJsonLdAnns = null;
 
@@ -174,7 +201,7 @@ public class RestClient {
 			JsonDocument[] jsonDocs = fromJson.getDocuments();
 			List<Document> docs = new ArrayList<Document>(jsonDocs.length);
 			for (JsonDocument jd : jsonDocs) {
-				Document doc = null;
+				Document doc;
 				if (jd.getType().equals("Audio"))
 					doc = new AudioDocumentImpl(jd);
 				else
@@ -225,7 +252,7 @@ public class RestClient {
 			Map<String, Document> rawDocCache = Collections
 					.synchronizedMap(new HashMap<String, Document>(1));
 			for (Map<String, Object> jsonLdAnn : annotationsAsJSONLD()) {
-				Annotation ann = null;
+				Annotation ann;
 				String annClass = (String) jsonLdAnn.get("@type");
 				if (annClass.equals(JSONLDKeys.TEXT_ANNOTATION_TYPE))
 					ann = new TextAnnotationImpl(jsonLdAnn, rawDocCache);
@@ -244,7 +271,7 @@ public class RestClient {
 			for (Annotation ann : getAnnotations()) {
 				try {
 					res.add((TextAnnotation) ann);
-				} catch (ClassCastException e) {
+				} catch (ClassCastException ignored) {
 				}
 			}
 			return res;
@@ -256,7 +283,7 @@ public class RestClient {
 			for (Annotation ann : getAnnotations()) {
 				try {
 					res.add((AudioAnnotation) ann);
-				} catch (ClassCastException e) {
+				} catch (ClassCastException ignored) {
 				}
 			}
 			return res;
@@ -320,7 +347,7 @@ public class RestClient {
 			for (Document doc : documents()) {
 				try {
 					docs.add((TextDocument) doc);
-				} catch (ClassCastException e) {
+				} catch (ClassCastException ignored) {
 				}
 			}
 			return docs;
@@ -331,7 +358,7 @@ public class RestClient {
 			for (Document doc : documents()) {
 				try {
 					docs.add((AudioDocument) doc);
-				} catch (ClassCastException e) {
+				} catch (ClassCastException ignored) {
 				}
 			}
 			return docs;
@@ -432,8 +459,8 @@ public class RestClient {
 
 	private abstract class AnnotationImpl implements Annotation {
 
-		private Map<String, Object> ldValues;
-		private Map<String, Document> rawDocCache;
+		private final Map<String, Object> ldValues;
+		private final Map<String, Document> rawDocCache;
 
 		private String annId;
 		private String type;
@@ -452,7 +479,7 @@ public class RestClient {
 			Object res = ldValues.get(key);
 			if (res == null)
 				throw new UnsupportedLDSchemaException(String.format(
-						"No key {} found for annotation", key));
+						"No key '%s' found for annotation", key));
 			return res;
 		}
 
