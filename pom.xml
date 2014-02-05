@@ -1,14 +1,11 @@
-<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+<?xml version="1.0"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-
 	<groupId>com.nicta</groupId>
 	<version>0.4.1-SNAPSHOT</version>
 	<packaging>jar</packaging>
-
 	<name>vlabclient</name>
 	<url>http://opennicta.com/home/health/vlabclient</url>
-
 	<organization>
 		<name>National ICT Australia</name>
 		<url>http://nicta.com.au/</url>
@@ -21,18 +18,10 @@
 	</developers>
 	<inceptionYear>2013</inceptionYear>
 	<description>Java wrapper for the HCS vLab REST API</description>
-
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
-
 	<dependencies>
-		<dependency>
-			<groupId>junit</groupId>
-			<artifactId>junit</artifactId>
-			<version>3.8.1</version>
-			<scope>test</scope>
-		</dependency>
 		<dependency>
 			<groupId>ch.qos.logback</groupId>
 			<artifactId>logback-classic</artifactId>
@@ -64,8 +53,43 @@
 			<artifactId>jsr305</artifactId>
 			<version>2.0.2</version>
 		</dependency>
-
-	</dependencies>
+		<dependency>
+			<scope>test</scope>
+			<groupId>co.freeside</groupId>
+			<artifactId>betamax</artifactId>
+			<version>1.1.2</version>
+		</dependency>
+		<dependency>
+			<scope>test</scope>
+			<groupId>junit</groupId>
+			<artifactId>junit</artifactId>
+			<version>4.11</version>
+		</dependency>
+		<dependency>
+			<scope>test</scope>
+			<groupId>org.codehaus.groovy</groupId>
+			<artifactId>groovy-all</artifactId>
+			<version>1.8.9</version>
+		</dependency>
+        <dependency>
+            <groupId>org.scala-lang</groupId>
+            <artifactId>scala-library</artifactId>
+            <version>2.10.3</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.scala-lang</groupId>
+            <artifactId>scala-compiler</artifactId>
+            <version>2.10.3</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.esotericsoftware.yamlbeans</groupId>
+            <artifactId>yamlbeans</artifactId>
+            <version>1.06</version>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
 	<build>
 		<plugins>
 			<plugin>
@@ -103,8 +127,12 @@
 				<configuration>
 				</configuration>
 			</plugin>
-
-		</plugins>
+            <plugin>
+                <groupId>net.alchim31.maven</groupId>
+                <artifactId>scala-maven-plugin</artifactId>
+                <version>3.1.6</version>
+            </plugin>
+        </plugins>
 	</build>
 	<artifactId>vlabclient</artifactId>
 </project>
