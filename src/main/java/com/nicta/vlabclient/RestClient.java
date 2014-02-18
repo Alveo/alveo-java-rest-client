@@ -249,12 +249,11 @@ public class RestClient {
 
 		public List<Annotation> getAnnotations() throws UnsupportedLDSchemaException {
 			List<Annotation> anns = new ArrayList<Annotation>();
-			Map<String, Document> rawDocCache = Collections
-					.synchronizedMap(new HashMap<String, Document>(1));
+			Map<String, Document> rawDocCache = Collections.synchronizedMap(new HashMap<String, Document>(1));
 			for (Map<String, Object> jsonLdAnn : annotationsAsJSONLD()) {
 				Annotation ann;
-				String annClass = (String) jsonLdAnn.get("@type");
-				if (annClass.equals(JSONLDKeys.TEXT_ANNOTATION_TYPE))
+				String valueType = (String) jsonLdAnn.get("@type");
+				if (valueType.equals(JSONLDKeys.TEXT_ANNOTATION_VALUE_TYPE))
 					ann = new TextAnnotationImpl(jsonLdAnn, rawDocCache);
 				else
 					ann = new AudioAnnotationImpl(jsonLdAnn, rawDocCache);
@@ -465,6 +464,7 @@ public class RestClient {
 		private String annId;
 		private String type;
 		private String label;
+		private String valueType;
 		private double start;
 		private double end;
 
@@ -489,6 +489,7 @@ public class RestClient {
 			label = (String) getValue(JSONLDKeys.LABEL_ATTRIB);
 			start = (Double) getValue(JSONLDKeys.START_ATTRIB);
 			end = (Double) getValue(JSONLDKeys.END_ATTRIB);
+			valueType = (String) getValue("@type");
 			getValue(JSONLDKeys.ANNOTATES_ATTRIB); // check for key only
 		}
 
@@ -506,6 +507,11 @@ public class RestClient {
 
 		public double getEnd() {
 			return end;
+		}
+
+		@Override
+		public String getValueType() {
+			return valueType;
 		}
 
 		public Document getAnnotationTarget() {
@@ -652,7 +658,7 @@ public class RestClient {
 	/**
 	 * Get the catalog item at the supplied URI
 	 * 
-	 * @param itemId
+	 * @param itemUri
 	 *            the fully qualified URI of the item, such as 'http://vlab.example.org/catalog/hcsvlab:456'
 	 * @return the requested item
 	 * @throws UnauthorizedAPIKeyException
@@ -680,13 +686,15 @@ public class RestClient {
 	 *             if the API key does not permit access
 	 * @see #getItemList(String)
 	 */
-	public ItemList getItemListFromUri(String itemListUri) throws UnauthorizedAPIKeyException {
+	public ItemList getItemListFromUri(String itemListUri) throws UnauthorizedAPIKeyException, EntityNotFoundException {
 		try {
 			JsonItemList itemListJson = getJsonInvocBuilder(itemListUri).get(JsonItemList.class);
 			return new ItemListImpl(itemListJson, itemListUri);
 		} catch (NotAuthorizedException e) {
 			throw new UnauthorizedAPIKeyException("Provided API key " + apiKey
 					+ " was not accepted by the server");
+		} catch (NotFoundException e) {
+			throw new EntityNotFoundException("Could not find entity with URI " + itemListUri);
 		}
 	}
 

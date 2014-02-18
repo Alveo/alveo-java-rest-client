@@ -24,13 +24,17 @@ public interface Annotation {
 	/** Return the end offset of the annotation
 	 */
 	public double getEnd();
-	
+
+	/** Return the <a href="http://www.w3.org/TR/json-ld/#typed-values">JSON-LD value type</a>
+	 */
+	public String getValueType();
+
 	public Document getAnnotationTarget();
 	
 	public static class JSONLDKeys {
 		public static final String ANNOTATION = "http://purl.org/dada/schema/0.2/annotations";
 		public static final String COMMON_PROPERTIES = "http://purl.org/dada/schema/0.2/commonProperties";
-		public static final String TEXT_ANNOTATION_TYPE = "http://purl.org/dada/schema/0.2/TextAnnotation";
+		public static final String TEXT_ANNOTATION_VALUE_TYPE = "http://purl.org/dada/schema/0.2/TextAnnotation";
 		private static final String attribBase = "http://purl.org/dada/schema/0.2";
 		
 		private static String fullUri(String suffix) {
