@@ -249,7 +249,7 @@ public class RestClient {
 			for (Map<String, Object> jsonLdAnn : annotationsAsJSONLD()) {
 				Annotation ann;
 				String valueType = (String) jsonLdAnn.get("@type");
-				if (valueType.equals(JSONLDKeys.TEXT_ANNOTATION_VALUE_TYPE))
+				if (JSONLDKeys.TEXT_ANNOTATION_VALUE_TYPE_SYNS.contains(valueType))
 					ann = new TextAnnotationImpl(jsonLdAnn, rawDocCache);
 				else
 					ann = new AudioAnnotationImpl(jsonLdAnn, rawDocCache);
