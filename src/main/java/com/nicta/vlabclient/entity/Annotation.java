@@ -32,13 +32,13 @@ public interface Annotation {
 	public Document getAnnotationTarget();
 	
 	public static class JSONLDKeys {
-		public static final String ANNOTATION = "http://purl.org/dada/schema/0.2/annotations";
-		public static final String COMMON_PROPERTIES = "http://purl.org/dada/schema/0.2/commonProperties";
-		public static final String TEXT_ANNOTATION_VALUE_TYPE = "http://purl.org/dada/schema/0.2/TextAnnotation";
+		public static final String ANNOTATIONS = "http://purl.org/dada/schema/0.2#annotations";
+		public static final String COMMON_PROPERTIES = "http://purl.org/dada/schema/0.2#commonProperties";
+		public static final String TEXT_ANNOTATION_VALUE_TYPE = "http://purl.org/dada/schema/0.2#TextAnnotation";
 		private static final String attribBase = "http://purl.org/dada/schema/0.2";
 		
 		private static String fullUri(String suffix) {
-			return String.format("%s/%s", attribBase, suffix);
+			return String.format("%s#%s", attribBase, suffix);
 		}
 		public static final String END_ATTRIB = fullUri("end");
 		public static final String START_ATTRIB = fullUri("start");

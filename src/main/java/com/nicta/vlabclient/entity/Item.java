@@ -68,7 +68,7 @@ public interface Item {
 
 	
 	
-	/** Get the (possibly empty) list of association annotations, returning the 
+	/** Get the (possibly empty) list of associated annotations, returning the
 	 * JSONLD representation of each annotation. In this representation, the
 	 * keys are full URIs.
 	 * 

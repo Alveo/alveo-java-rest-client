@@ -1,29 +1,7 @@
 package com.nicta.vlabclient;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
-import javax.annotation.Nullable;
-import javax.ws.rs.NotAuthorizedException;
-import javax.ws.rs.NotFoundException;
-import javax.ws.rs.ProcessingException;
-import javax.ws.rs.client.Client;
-import javax.ws.rs.client.Invocation;
-import javax.ws.rs.core.MediaType;
-
-import org.apache.http.client.HttpClient;
-import org.apache.http.impl.client.SystemDefaultHttpClient;
-import org.apache.http.params.BasicHttpParams;
-import org.apache.http.params.CoreConnectionPNames;
-import org.apache.http.params.HttpParams;
-import org.jboss.resteasy.client.jaxrs.ClientHttpEngine;
-import org.jboss.resteasy.client.jaxrs.ResteasyClientBuilder;
-import org.jboss.resteasy.client.jaxrs.engines.ApacheHttpClient4Engine;
-
 import com.fasterxml.jackson.core.JsonParseException;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.github.jsonldjava.core.JSONLD;
 import com.github.jsonldjava.core.JSONLDProcessingError;
@@ -32,18 +10,33 @@ import com.nicta.vlabclient.JsonApi.JsonCatalogItem;
 import com.nicta.vlabclient.JsonApi.JsonDocument;
 import com.nicta.vlabclient.JsonApi.JsonItemList;
 import com.nicta.vlabclient.JsonApi.VersionResult;
-import com.nicta.vlabclient.entity.Annotation;
+import com.nicta.vlabclient.entity.*;
 import com.nicta.vlabclient.entity.Annotation.JSONLDKeys;
-import com.nicta.vlabclient.entity.AudioAnnotation;
-import com.nicta.vlabclient.entity.AudioDocument;
-import com.nicta.vlabclient.entity.Document;
-import com.nicta.vlabclient.entity.EntityNotFoundException;
-import com.nicta.vlabclient.entity.Item;
-import com.nicta.vlabclient.entity.ItemList;
-import com.nicta.vlabclient.entity.TextAnnotation;
-import com.nicta.vlabclient.entity.TextDocument;
-import com.nicta.vlabclient.entity.UnknownValueException;
-import com.nicta.vlabclient.entity.UnsupportedLDSchemaException;
+import org.apache.http.client.HttpClient;
+import org.apache.http.impl.client.SystemDefaultHttpClient;
+import org.apache.http.params.BasicHttpParams;
+import org.apache.http.params.CoreConnectionPNames;
+import org.apache.http.params.HttpParams;
+import org.jboss.resteasy.client.jaxrs.ClientHttpEngine;
+import org.jboss.resteasy.client.jaxrs.ResteasyClientBuilder;
+import org.jboss.resteasy.client.jaxrs.engines.ApacheHttpClient4Engine;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import javax.annotation.Nullable;
+import javax.ws.rs.NotAuthorizedException;
+import javax.ws.rs.NotFoundException;
+import javax.ws.rs.ProcessingException;
+import javax.ws.rs.client.Client;
+import javax.ws.rs.client.Entity;
+import javax.ws.rs.client.Invocation;
+import javax.ws.rs.core.MediaType;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 /**
  * The primary class to use to interact with the HCS vLab REST API - use this to
@@ -53,6 +46,7 @@ import com.nicta.vlabclient.entity.UnsupportedLDSchemaException;
  * 
  */
 public class RestClient {
+	private static final Logger LOG = LoggerFactory.getLogger(RestClient.class);
 
 	private final String serverBaseUri;
 	private final String apiKey;
@@ -61,7 +55,9 @@ public class RestClient {
 	private static final Map<String, Object> EMPTY_MAP = new HashMap<String, Object>();
 
 	/**
-	 * Construct a new REST client instance
+	 * Construct a new REST client instance. Since this creates an associated {@link javax.ws.rs.client.Client}
+	 * instance, which "may be a rather expensive operation", and in addition there is overhead of
+	 * checking the validity of the API key, callers are advised to keep usage of this constructor to a minimum.
 	 * 
 	 * @param serverBaseUri
 	 *            The base URI of the server to construct API calls to the JSON
@@ -297,7 +293,7 @@ public class RestClient {
 			cachedJsonLdAnns = new ArrayList<Map<String, Object>>();
 			Object jsonObj = getJsonObject();
 			Map<String, Object> compacted = getResolvedVersion(jsonObj);
-			Map<String, Object> annWrapper = jmap(compacted.get(JSONLDKeys.ANNOTATION));
+			Map<String, Object> annWrapper = jmap(compacted.get(JSONLDKeys.ANNOTATIONS));
 			Map<String, Object> commonProps = jmap(compacted.get(JSONLDKeys.COMMON_PROPERTIES));
 			List<Object> annObjects = (List<Object>) annWrapper.get("@list");
 			for (Object annObj : annObjects) {
@@ -472,25 +468,62 @@ public class RestClient {
 				throws UnsupportedLDSchemaException {
 			ldValues = raw;
 			rawDocCache = docCache;
-			initValues();
+			initFieldsFromJSONValues();
+		}
+
+		private AnnotationImpl(String type, String label, double start, double end, String valueType) {
+			this.type = type;
+			this.label = label;
+			this.start = start;
+			this.end = end;
+			this.valueType = valueType;
+			ldValues = new LinkedHashMap<String, Object>();
+			initJSONValuesFromFields();
+			rawDocCache = null;
+		}
+
+		private Map<String, Object> mapForJson() {
+			return ldValues;
 		}
 
 		private Object getValue(String key) throws UnsupportedLDSchemaException {
+			return getValue(key, false);
+		}
+
+		private Object getValue(String key, boolean optional) throws UnsupportedLDSchemaException {
 			Object res = ldValues.get(key);
-			if (res == null)
+			if (res == null && !optional)
 				throw new UnsupportedLDSchemaException(String.format(
 						"No key '%s' found for annotation", key));
 			return res;
 		}
 
-		private void initValues() throws UnsupportedLDSchemaException {
+		private void initFieldsFromJSONValues() throws UnsupportedLDSchemaException {
 			annId = (String) getValue("@id");
 			type = (String) getValue(JSONLDKeys.TYPE_ATTRIB);
-			label = (String) getValue(JSONLDKeys.LABEL_ATTRIB);
-			start = (Double) getValue(JSONLDKeys.START_ATTRIB);
-			end = (Double) getValue(JSONLDKeys.END_ATTRIB);
+			label = (String) getValue(JSONLDKeys.LABEL_ATTRIB, true);
+			start = readDouble(getValue(JSONLDKeys.START_ATTRIB));
+			end = readDouble(getValue(JSONLDKeys.END_ATTRIB));
 			valueType = (String) getValue("@type");
 			getValue(JSONLDKeys.ANNOTATES_ATTRIB); // check for key only
+		}
+
+		private double readDouble(Object value) {
+			try {
+				return (Double) value;
+			} catch (ClassCastException e) {
+				return Double.parseDouble((String) value);
+			}
+		}
+
+		private void initJSONValuesFromFields() {
+			if (annId != null)
+				ldValues.put("@id", annId);
+			ldValues.put(JSONLDKeys.TYPE_ATTRIB, type);
+			ldValues.put(JSONLDKeys.LABEL_ATTRIB, label);
+			ldValues.put(JSONLDKeys.START_ATTRIB, start);
+			ldValues.put(JSONLDKeys.END_ATTRIB, end);
+			ldValues.put("@type", valueType);
 		}
 
 		public String getType() {
