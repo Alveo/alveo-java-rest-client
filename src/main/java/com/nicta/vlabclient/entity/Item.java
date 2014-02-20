@@ -1,5 +1,7 @@
 package com.nicta.vlabclient.entity;
 
+import com.nicta.vlabclient.InvalidAnnotationException;
+
 import java.util.List;
 import java.util.Map;
 
@@ -76,4 +78,6 @@ public interface Item {
 	public List<Map<String, Object>> annotationsAsJSONLD();
 
 
+	/** Store a new set of annotations associated with this item to the server */
+	public void storeNewAnnotations(List<Annotation> annotations) throws EntityNotFoundException, UploadIntegrityException, InvalidAnnotationException;
 }

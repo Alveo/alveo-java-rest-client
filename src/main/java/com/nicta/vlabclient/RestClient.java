@@ -53,6 +53,7 @@ public class RestClient {
 	private final Client client;
 
 	private static final Map<String, Object> EMPTY_MAP = new HashMap<String, Object>();
+	private Map<String,Object> cachedJSONLDSchema = null;
 
 	/**
 	 * Construct a new REST client instance. Since this creates an associated {@link javax.ws.rs.client.Client}
@@ -304,6 +305,40 @@ public class RestClient {
 			return cachedJsonLdAnns;
 		}
 
+		@Override
+		public void storeNewAnnotations(List<Annotation> annotations)
+				throws EntityNotFoundException, UploadIntegrityException, InvalidAnnotationException {
+			String annUploadUri = uri + "/annotations";
+			Invocation.Builder builder = getJsonInvocBuilder(annUploadUri);
+			Entity<Map<String, Object>> postableJsonEntity = Entity.json(jsonMapForAnnUpload(annotations));
+			String rawResp = builder.buildPost(postableJsonEntity).invoke(String.class);
+			Map<String, Object> respond = null;
+			try {
+				respond = (Map<String, Object>) JSONUtils.fromString(rawResp);
+			} catch (JsonProcessingException e) {
+				throw new InvalidServerResponseException(e);
+			}
+			String error = (String) respond.get("error");
+			if (error != null) {
+				if (error.startsWith("No item with ID"))
+					throw new EntityNotFoundException(error);
+				else
+					throw new UploadIntegrityException(error);
+			}
+		}
+
+		private Map<String, Object> jsonMapForAnnUpload(List<Annotation> annotations) throws InvalidAnnotationException {
+			LinkedHashMap<String, Object> jsonMap = new LinkedHashMap<String, Object>(1);
+			jsonMap.put("@graph", annotations);
+			Map<String, Object> compacted = null;
+			try {
+				compacted = (Map<String, Object>) JSONLD.compact(jsonMap, defaultJSONLDSchema());
+			} catch (JSONLDProcessingError e) {
+				throw new InvalidAnnotationException("Error compacting annotations using JSONLD", e);
+			}
+			return compacted;
+		}
+
 		@SuppressWarnings("unchecked")
 		private Map<String, Object> getResolvedVersion(Object jsonObj) {
 			// use 'compact' here to resolve each annotation against the
@@ -359,6 +394,24 @@ public class RestClient {
 			return docs;
 		}
 
+	}
+
+	private String schemaURL() {
+		return serverBaseUri + "/schema/json-ld";
+	}
+
+	private Map<String, Object> defaultJSONLDSchema() {
+		if (cachedJSONLDSchema != null)
+			return cachedJSONLDSchema;
+		String jsonSchemaString = getJsonInvocBuilder(schemaURL()).get(String.class);
+		try {
+			cachedJSONLDSchema = (Map<String, Object>) JSONUtils.fromString(jsonSchemaString);
+		} catch (JsonProcessingException e) {
+			LOG.warn("Invalid JSON schema found at {}; using empty context for uploaded annotations " +
+					"(this should not affect functionality but will increase upload time)", schemaURL());
+			cachedJSONLDSchema = new LinkedHashMap<String, Object>(0);
+		}
+		return cachedJSONLDSchema;
 	}
 
 	/**
