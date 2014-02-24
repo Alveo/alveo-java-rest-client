@@ -89,6 +89,16 @@
             <version>1.06</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>org.apache.httpcomponents</groupId>
+            <artifactId>httpmime</artifactId>
+            <version>4.3.2</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.httpcomponents</groupId> <!-- not automatic from httpmime for some reason -->
+            <artifactId>httpcore</artifactId>
+            <version>4.3.1</version>
+        </dependency>
     </dependencies>
 	<build>
 		<plugins>

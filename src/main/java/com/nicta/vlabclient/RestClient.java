@@ -13,10 +13,19 @@ import com.nicta.vlabclient.JsonApi.VersionResult;
 import com.nicta.vlabclient.entity.*;
 import com.nicta.vlabclient.entity.Annotation.JSONLDKeys;
 import org.apache.http.client.HttpClient;
+import org.apache.http.entity.ContentType;
+import org.apache.http.entity.mime.MultipartEntityBuilder;
+import org.apache.http.entity.mime.content.InputStreamBody;
 import org.apache.http.impl.client.SystemDefaultHttpClient;
 import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.CoreConnectionPNames;
 import org.apache.http.params.HttpParams;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.entity.mime.MultipartEntity;
+import org.apache.http.entity.mime.content.FileBody;
+import org.apache.http.entity.mime.content.StringBody;
+import org.apache.http.impl.client.DefaultHttpClient;
 import org.jboss.resteasy.client.jaxrs.ClientHttpEngine;
 import org.jboss.resteasy.client.jaxrs.ResteasyClientBuilder;
 import org.jboss.resteasy.client.jaxrs.engines.ApacheHttpClient4Engine;
@@ -31,6 +40,10 @@ import javax.ws.rs.client.Client;
 import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.Invocation;
 import javax.ws.rs.core.MediaType;
+import java.io.IOException;
+import java.nio.charset.Charset;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -51,9 +64,22 @@ public class RestClient {
 	private final String serverBaseUri;
 	private final String apiKey;
 	private final Client client;
+	private final HttpClient httpClient;
 
 	private static final Map<String, Object> EMPTY_MAP = new HashMap<String, Object>();
 	private Map<String,Object> cachedJSONLDSchema = null;
+
+	private static final Charset CHARSET = Charset.forName("UTF-8");
+	private static final MessageDigest HASHER;
+
+	static {
+		try {
+			HASHER = MessageDigest.getInstance("MD5");
+		} catch (NoSuchAlgorithmException e) {
+			throw new RuntimeException(e);
+		}
+	}
+
 
 	/**
 	 * Construct a new REST client instance. Since this creates an associated {@link javax.ws.rs.client.Client}
@@ -77,9 +103,10 @@ public class RestClient {
 			InvalidServerAddressException {
 		this.serverBaseUri = serverBaseUri;
 		this.apiKey = apiKey;
+		httpClient = newHttpClient();
 		// use this HTTP client which respects JVM proxy settings
 		// (this doesn't do any harm, and helps in testing with Betamax)
-		ClientHttpEngine httpEngine = new ApacheHttpClient4Engine(newHttpClient());
+		ClientHttpEngine httpEngine = new ApacheHttpClient4Engine(httpClient);
 //		// instead of the more usual ClientBuilder.newClient(), we do this to specify the engine:
 		client = new ResteasyClientBuilder().httpEngine(httpEngine).build();
 		checkVersion();
@@ -309,18 +336,35 @@ public class RestClient {
 		public void storeNewAnnotations(List<Annotation> annotations)
 				throws EntityNotFoundException, UploadIntegrityException, InvalidAnnotationException {
 			String annUploadUri = uri + "/annotations";
-			Invocation.Builder builder = getJsonInvocBuilder(annUploadUri);
-			Entity<String> postableJsonEntity = Entity.json(JSONUtils.toString(jsonMapForAnnUpload(annotations)));
-			LOG.info("Using URI {}, about to post entity {}", annUploadUri,
-					postableJsonEntity.getEntity());
-			String rawResp = builder.post(postableJsonEntity, String.class);
-			Map<String, Object> respond;
+			// HCS vLab expects a multipart file upload of the JSON rather than raw post data.
+			// so we have to use the Apache HTTP client directly to build up the call
+			// instead of using JAX-RS.
+			String uploadableJson = JSONUtils.toString(jsonMapForAnnUpload(annotations));
+			MultipartEntityBuilder mpeBuilder = MultipartEntityBuilder.create();
+			mpeBuilder.setCharset(CHARSET);
+			byte[] uploadableBytes = uploadableJson.getBytes(CHARSET);
+			mpeBuilder.addBinaryBody("file", uploadableBytes, ContentType.APPLICATION_JSON,
+					HASHER.digest(uploadableBytes).toString() + ".json"); // hash contents to give unique filenames
+			HttpPost httpPost = new HttpPost(annUploadUri);
+			httpPost.addHeader("X-API-KEY", apiKey);
+			httpPost.setEntity(mpeBuilder.build());
+			HttpResponse response = null;
 			try {
-				respond = (Map<String, Object>) JSONUtils.fromString(rawResp);
-			} catch (JsonProcessingException e) {
+				response = httpClient.execute(httpPost);
+			} catch (IOException e) {
 				throw new InvalidServerResponseException(e);
 			}
-			String error = (String) respond.get("error");
+			LOG.info("Using URI {}, about to post entity {}", annUploadUri,
+					uploadableJson);
+			Map<String, Object> responseMap;
+			try {
+				responseMap = (Map<String, Object>) JSONUtils.fromInputStream(response.getEntity().getContent());
+			} catch (JsonProcessingException e) {
+				throw new InvalidServerResponseException(e);
+			} catch (IOException e) {
+				throw new InvalidServerResponseException(e);
+			}
+			String error = (String) responseMap.get("error");
 			if (error != null) {
 				if (error.startsWith("No item with ID"))
 					throw new EntityNotFoundException(error);
