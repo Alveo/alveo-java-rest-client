@@ -310,9 +310,11 @@ public class RestClient {
 				throws EntityNotFoundException, UploadIntegrityException, InvalidAnnotationException {
 			String annUploadUri = uri + "/annotations";
 			Invocation.Builder builder = getJsonInvocBuilder(annUploadUri);
-			Entity<Map<String, Object>> postableJsonEntity = Entity.json(jsonMapForAnnUpload(annotations));
-			String rawResp = builder.buildPost(postableJsonEntity).invoke(String.class);
-			Map<String, Object> respond = null;
+			Entity<String> postableJsonEntity = Entity.json(JSONUtils.toString(jsonMapForAnnUpload(annotations)));
+			LOG.info("Using URI {}, about to post entity {}", annUploadUri,
+					postableJsonEntity.getEntity());
+			String rawResp = builder.post(postableJsonEntity, String.class);
+			Map<String, Object> respond;
 			try {
 				respond = (Map<String, Object>) JSONUtils.fromString(rawResp);
 			} catch (JsonProcessingException e) {
@@ -329,7 +331,11 @@ public class RestClient {
 
 		private Map<String, Object> jsonMapForAnnUpload(List<Annotation> annotations) throws InvalidAnnotationException {
 			LinkedHashMap<String, Object> jsonMap = new LinkedHashMap<String, Object>(1);
-			jsonMap.put("@graph", annotations);
+			List<Map<String, Object>> annsJson = new ArrayList<Map<String, Object>>(annotations.size());
+			for (Annotation ann: annotations)
+				annsJson.add(ann.uriToValueMap());
+			jsonMap.put("@graph", annsJson);
+			LOG.info("Raw annotation JSON: {}", jsonMap);
 			Map<String, Object> compacted = null;
 			try {
 				compacted = (Map<String, Object>) JSONLD.compact(jsonMap, defaultJSONLDSchema());
@@ -505,38 +511,15 @@ public class RestClient {
 
 	}
 
-	private abstract class AnnotationImpl implements Annotation {
-
-		private final Map<String, Object> ldValues;
+	private abstract class AnnotationImpl extends BasicRestAnnotation {
 		private final Map<String, Document> rawDocCache;
-
-		private String annId;
-		private String type;
-		private String label;
-		private String valueType;
-		private double start;
-		private double end;
 
 		private AnnotationImpl(Map<String, Object> raw, Map<String, Document> docCache)
 				throws UnsupportedLDSchemaException {
-			ldValues = raw;
+			ldValues.clear();
+			ldValues.putAll(raw);
 			rawDocCache = docCache;
 			initFieldsFromJSONValues();
-		}
-
-		private AnnotationImpl(String type, String label, double start, double end, String valueType) {
-			this.type = type;
-			this.label = label;
-			this.start = start;
-			this.end = end;
-			this.valueType = valueType;
-			ldValues = new LinkedHashMap<String, Object>();
-			initJSONValuesFromFields();
-			rawDocCache = null;
-		}
-
-		private Map<String, Object> mapForJson() {
-			return ldValues;
 		}
 
 		private Object getValue(String key) throws UnsupportedLDSchemaException {
@@ -569,36 +552,6 @@ public class RestClient {
 			}
 		}
 
-		private void initJSONValuesFromFields() {
-			if (annId != null)
-				ldValues.put("@id", annId);
-			ldValues.put(JSONLDKeys.TYPE_ATTRIB, type);
-			ldValues.put(JSONLDKeys.LABEL_ATTRIB, label);
-			ldValues.put(JSONLDKeys.START_ATTRIB, start);
-			ldValues.put(JSONLDKeys.END_ATTRIB, end);
-			ldValues.put("@type", valueType);
-		}
-
-		public String getType() {
-			return type;
-		}
-
-		public String getLabel() {
-			return label;
-		}
-
-		public double getStart() {
-			return start;
-		}
-
-		public double getEnd() {
-			return end;
-		}
-
-		@Override
-		public String getValueType() {
-			return valueType;
-		}
 
 		public Document getAnnotationTarget() {
 			// memoize, since clients might call it multiple times
@@ -615,10 +568,6 @@ public class RestClient {
 
 		protected String annTargetUrl() {
 			return (String) ldValues.get(JSONLDKeys.ANNOTATES_ATTRIB);
-		}
-
-		public String getId() {
-			return annId;
 		}
 
 		public String toString() {
