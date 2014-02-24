@@ -2,6 +2,7 @@ package com.nicta.vlabclient.entity;
 
 import java.util.Arrays;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Set;
 
 /** A representation of an Item from a item list in the HCS vLab REST API
@@ -33,7 +34,18 @@ public interface Annotation {
 	 */
 	public String getValueType();
 
+	/** Return a mapping containing URIs as keys corresponding to fields, and their matching values
+	 * This is used for converting to and from JSON
+	 *
+	 * The URIs correspond to JSON-LD URIs and therefore also to RDF predicate URIs on the server side
+	 *
+	 * @return a URI to value mapping
+	 */
+	public Map<String, Object> uriToValueMap();
+
 	public Document getAnnotationTarget();
+
+
 	
 	public static class JSONLDKeys {
 		public static final String ANNOTATIONS = "http://purl.org/dada/schema/0.2#annotations";
