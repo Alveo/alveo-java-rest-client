@@ -7,26 +7,19 @@ import com.github.jsonldjava.core.JsonLdOptions;
 import com.github.jsonldjava.core.JsonLdProcessor;
 import com.github.jsonldjava.core.JsonLdError;
 import com.github.jsonldjava.utils.JSONUtils;
-import com.nicta.vlabclient.JsonApi.JsonCatalogItem;
-import com.nicta.vlabclient.JsonApi.JsonDocument;
 import com.nicta.vlabclient.JsonApi.JsonItemList;
 import com.nicta.vlabclient.JsonApi.VersionResult;
 import com.nicta.vlabclient.entity.*;
-import com.nicta.vlabclient.entity.Annotation.JSONLDKeys;
+import com.nicta.vlabclient.entity.JSONLDKeys;
 import org.apache.http.client.HttpClient;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
-import org.apache.http.entity.mime.content.InputStreamBody;
 import org.apache.http.impl.client.SystemDefaultHttpClient;
 import org.apache.http.params.BasicHttpParams;
 import org.apache.http.params.CoreConnectionPNames;
 import org.apache.http.params.HttpParams;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.methods.HttpPost;
-import org.apache.http.entity.mime.MultipartEntity;
-import org.apache.http.entity.mime.content.FileBody;
-import org.apache.http.entity.mime.content.StringBody;
-import org.apache.http.impl.client.DefaultHttpClient;
 import org.jboss.resteasy.client.jaxrs.ClientHttpEngine;
 import org.jboss.resteasy.client.jaxrs.ResteasyClientBuilder;
 import org.jboss.resteasy.client.jaxrs.engines.ApacheHttpClient4Engine;
@@ -38,7 +31,6 @@ import javax.ws.rs.NotAuthorizedException;
 import javax.ws.rs.NotFoundException;
 import javax.ws.rs.ProcessingException;
 import javax.ws.rs.client.Client;
-import javax.ws.rs.client.Entity;
 import javax.ws.rs.client.Invocation;
 import javax.ws.rs.core.MediaType;
 import java.io.IOException;
@@ -192,7 +184,7 @@ public class RestClient {
 		 * 
 		 * @see com.nicta.vlabclient.ItemList#getCatalogItems()
 		 */
-		public List<Item> getCatalogItems() throws UnauthorizedAPIKeyException {
+		public List<Item> getCatalogItems() throws UnauthorizedAPIKeyException, RestJsonDataException {
 			List<Item> cis = new ArrayList<Item>();
 			for (String itemUri : itemUris()) 
 				cis.add(getItemByUri(itemUri));
@@ -206,15 +198,38 @@ public class RestClient {
 	 * @author andrew.mackinlay
 	 * 
 	 */
-	private class ItemImpl implements Item {
-		private final JsonCatalogItem fromJson;
+	private class ItemImpl extends JsonLdDerivedObject implements Item {
 		private final String uri;
 
 		private List<Map<String, Object>> cachedJsonLdAnns = null;
 
-		private ItemImpl(JsonCatalogItem raw, String uri) {
-			fromJson = raw;
+		private Map<String, String> metadata;
+		private String primaryTextUrl;
+		private String annotationsUrl;
+		private List<Document> documents;
+
+		private ItemImpl(Map<String, Object> raw, String uri) throws UnsupportedLDSchemaException, UnknownValueException {
+			ldValues.clear();
+			ldValues.putAll(raw);
 			this.uri = uri;
+			initFieldsFromJSONValues();
+		}
+
+
+		private void initFieldsFromJSONValues() throws UnsupportedLDSchemaException, UnknownValueException {
+			metadata = (Map<String, String>) getValue(JSONLDKeys.ITEM_METADATA);
+			primaryTextUrl = (String) getValue(JSONLDKeys.ITEM_PRIMARY_TEXT_URL);
+			annotationsUrl = (String) getValue(JSONLDKeys.ITEM_ANNOTATIONS_URL);
+			List<Map<String, Object>> rawDocs = (List<Map<String, Object>>) getValue(JSONLDKeys.ITEM_DOCUMENTS);
+			initializeDocuments(rawDocs);
+		}
+
+		private void initializeDocuments(List<Map<String, Object>> rawDocs) throws UnsupportedLDSchemaException, UnknownValueException {
+			documents = new ArrayList<Document>(rawDocs.size());
+			for (Map<String, Object> rd : rawDocs) {
+				Document doc = new DocumentImpl(rd);
+				documents.add(getDocInstanceForType(doc));
+			}
 		}
 
 		/*
@@ -223,17 +238,7 @@ public class RestClient {
 		 * @see com.nicta.vlabclient.Item#documents()
 		 */
 		public List<Document> documents() {
-			JsonDocument[] jsonDocs = fromJson.getDocuments();
-			List<Document> docs = new ArrayList<Document>(jsonDocs.length);
-			for (JsonDocument jd : jsonDocs) {
-				Document doc;
-				if (jd.getType().equals("Audio"))
-					doc = new AudioDocumentImpl(jd);
-				else
-					doc = new TextDocumentImpl(jd);
-				docs.add(doc);
-			}
-			return docs;
+			return documents;
 		}
 
 		/*
@@ -251,7 +256,7 @@ public class RestClient {
 		 * @see com.nicta.vlabclient.Item#getPrimaryTextUrl()
 		 */
 		public String getPrimaryTextUrl() {
-			return fromJson.getPrimaryTextUrl();
+			return primaryTextUrl;
 		}
 
 		/*
@@ -269,7 +274,7 @@ public class RestClient {
 		 * @see com.nicta.vlabclient.Item#getMetadata()
 		 */
 		public Map<String, String> getMetadata() {
-			return fromJson.getMetadata();
+			return metadata;
 		}
 
 		public List<Annotation> getAnnotations() throws UnsupportedLDSchemaException {
@@ -320,7 +325,7 @@ public class RestClient {
 			if (cachedJsonLdAnns != null)
 				return cachedJsonLdAnns;
 			cachedJsonLdAnns = new ArrayList<Map<String, Object>>();
-			Object jsonObj = getJsonObject();
+			Object jsonObj = getJsonObject(annotationsUrl);
 			Map<String, Object> compacted = getResolvedVersion(jsonObj);
 			Map<String, Object> annWrapper = jmap(compacted.get(JSONLDKeys.ANNOTATIONS));
 			Map<String, Object> commonProps = jmap(compacted.get(JSONLDKeys.COMMON_PROPERTIES));
@@ -390,41 +395,6 @@ public class RestClient {
 			return compacted;
 		}
 
-		@SuppressWarnings("unchecked")
-		private Map<String, Object> getResolvedVersion(Object jsonObj) {
-			// use 'compact' here to resolve each annotation against the
-			// context,
-			// rather than to shorten each annotation (which is its primary use)
-			try {
-				return (Map<String, Object>) JsonLdProcessor.compact(jsonObj, EMPTY_MAP, new JsonLdOptions());
-			} catch (JsonLdError e) {
-				throw new MalformedJSONException(e);
-			}
-		}
-
-		@SuppressWarnings("unchecked")
-		// helper purely to avoid verbose casts
-		private Map<String, Object> jmap(Object jsonObject) {
-			return (Map<String, Object>) jsonObject;
-		}
-
-		private Object getJsonObject() {
-			try {
-				return JSONUtils.fromString(getRawJson());
-			} catch (JsonParseException e) {
-				throw new MalformedJSONException(e);
-			} catch (JsonMappingException e) {
-				throw new MalformedJSONException(e);
-			} catch (IOException e) {
-				throw new MalformedJSONException(e);
-			}
-		}
-
-		private String getRawJson() {
-			String url = fromJson.getAnnotationsUrl();
-			return getJsonInvocBuilder(url).get(String.class);
-		}
-
 		public List<TextDocument> textDocuments() {
 			List<TextDocument> docs = new ArrayList<TextDocument>();
 			for (Document doc : documents()) {
@@ -475,18 +445,24 @@ public class RestClient {
 	 * @author andrew.mackinlay
 	 * 
 	 */
-	private class DocumentImpl implements Document {
+	private class DocumentImpl extends JsonLdDerivedObject implements Document {
 		private String docType = null;
 		private String docSize = null;
-		private final String docUrl;
+		private String docUrl;
 
-		private DocumentImpl(JsonDocument raw) {
-			docType = raw.getType();
-			docSize = raw.getSize();
-			docUrl = raw.getUrl();
+		private DocumentImpl(Map<String, Object> raw) throws UnsupportedLDSchemaException {
+			ldValues.clear();
+			ldValues.putAll(raw);
+			initFieldsFromJSONValues();
 			if (docType == null || docUrl == null)
 				throw new MalformedJSONException(String.format(
 						"An expected value was missing from %s", raw));
+		}
+
+		private void initFieldsFromJSONValues() throws UnsupportedLDSchemaException {
+			docType = (String) getValue(JSONLDKeys.DOCUMENT_TYPE);
+			docSize = (String) getValue(JSONLDKeys.DOCUMENT_SIZE);
+			docUrl = (String) getValue(JSONLDKeys.DOCUMENT_URL);
 		}
 
 		private DocumentImpl(String url) {
@@ -522,34 +498,63 @@ public class RestClient {
 
 	}
 
-	private class TextDocumentImpl extends DocumentImpl implements TextDocument {
+	private class DocumentDelegator implements Document {
+		Document document;
+
+		private DocumentDelegator(String url) {
+			this.document = new DocumentImpl(url);
+		}
+
+		private DocumentDelegator(Document document) {
+			this.document = document;
+		}
+
+		@Override
+		public String getDataUrl() {
+			return document.getDataUrl();
+		}
+
+		@Override
+		public String getType() throws UnknownValueException {
+			return document.getType();
+		}
+
+		@Nullable
+		@Override
+		public String getSize() throws UnknownValueException {
+			return document.getSize();
+		}
+
+	}
+
+	private class TextDocumentImpl extends DocumentDelegator implements TextDocument {
+
+		private TextDocumentImpl(Document document) {
+			super(document);
+		}
 
 		private TextDocumentImpl(String url) {
 			super(url);
 		}
 
-		private TextDocumentImpl(JsonDocument fromJson) {
-			super(fromJson);
-		}
-
 		/*
-		 * (non-Javadoc)
-		 * 
-		 * @see com.nicta.vlabclient.Document#rawText()
-		 */
+				 * (non-Javadoc)
+				 *
+				 * @see com.nicta.vlabclient.Document#rawText()
+				 */
 		public String rawText() {
 			return getTextInvocBuilder(getDataUrl()).get(String.class);
 		}
 	}
 
-	public class AudioDocumentImpl extends DocumentImpl implements AudioDocument {
+	public class AudioDocumentImpl extends DocumentDelegator implements AudioDocument {
 
-		private AudioDocumentImpl(String url) {
-			super(url);
+		private AudioDocumentImpl(Document document) {
+			super(document);
 		}
 
-		private AudioDocumentImpl(JsonDocument fromJson) {
-			super(fromJson);
+		public AudioDocumentImpl(String url) {
+			super(url);
 		}
 
 		public byte[] getData() {
@@ -559,6 +564,14 @@ public class RestClient {
 		}
 
 	}
+
+	private Document getDocInstanceForType(Document doc) {
+		if (doc.getType().equals("Audio"))
+			return new AudioDocumentImpl(doc);
+		else
+			return new TextDocumentImpl(doc);
+	}
+
 
 	private abstract class AnnotationImpl extends BasicRestAnnotation {
 		private final Map<String, Document> rawDocCache;
@@ -571,26 +584,14 @@ public class RestClient {
 			initFieldsFromJSONValues();
 		}
 
-		private Object getValue(String key) throws UnsupportedLDSchemaException {
-			return getValue(key, false);
-		}
-
-		private Object getValue(String key, boolean optional) throws UnsupportedLDSchemaException {
-			Object res = ldValues.get(key);
-			if (res == null && !optional)
-				throw new UnsupportedLDSchemaException(String.format(
-						"No key '%s' found for annotation", key));
-			return res;
-		}
-
 		private void initFieldsFromJSONValues() throws UnsupportedLDSchemaException {
 			annId = (String) getValue("@id");
-			type = (String) getValue(JSONLDKeys.TYPE_ATTRIB);
-			label = (String) getValue(JSONLDKeys.LABEL_ATTRIB, true);
-			start = readDouble(getValue(JSONLDKeys.START_ATTRIB));
-			end = readDouble(getValue(JSONLDKeys.END_ATTRIB));
+			type = (String) getValue(JSONLDKeys.ANNOTATION_TYPE);
+			label = (String) getValue(JSONLDKeys.ANNOTATION_LABEL, true);
+			start = readDouble(getValue(JSONLDKeys.ANNOTATION_START));
+			end = readDouble(getValue(JSONLDKeys.ANNOTATION_END));
 			valueType = (String) getValue("@type");
-			getValue(JSONLDKeys.ANNOTATES_ATTRIB); // check for key only
+			getValue(JSONLDKeys.ANNOTATION_ANNOTATES); // check for key only
 		}
 
 		private double readDouble(Object value) {
@@ -616,7 +617,7 @@ public class RestClient {
 		protected abstract Document getNewAnnotationTarget();
 
 		protected String annTargetUrl() {
-			return (String) ldValues.get(JSONLDKeys.ANNOTATES_ATTRIB);
+			return (String) ldValues.get(JSONLDKeys.ANNOTATION_ANNOTATES);
 		}
 
 		public String toString() {
@@ -748,9 +749,11 @@ public class RestClient {
 	 * @throws UnauthorizedAPIKeyException
 	 *             if the API key does not permit access
 	 */
-	public Item getItemByUri(String itemUri) throws UnauthorizedAPIKeyException {
+	public Item getItemByUri(String itemUri) throws UnauthorizedAPIKeyException, RestJsonDataException {
 		try {
-			return new ItemImpl(getJsonInvocBuilder(itemUri).get(JsonCatalogItem.class), itemUri);
+			Object jsonObj = getJsonObject(itemUri);
+			Map<String, Object> resolved = getResolvedVersion(jsonObj);
+			return new ItemImpl(resolved, itemUri);
 		} catch (NotAuthorizedException e) {
 			throw new UnauthorizedAPIKeyException("Provided API key " + apiKey
 					+ " was not accepted by the server");
@@ -822,6 +825,41 @@ public class RestClient {
 			throw new UnauthorizedAPIKeyException("Provided API key " + apiKey
 					+ " was not accepted by the server");
 		}
+	}
+
+
+	@SuppressWarnings("unchecked")
+	private Map<String, Object> getResolvedVersion(Object jsonObj) {
+		// use 'compact' here to resolve each annotation against the
+		// context,
+		// rather than to shorten each annotation (which is its primary use)
+		try {
+			return (Map<String, Object>) JsonLdProcessor.compact(jsonObj, EMPTY_MAP, new JsonLdOptions());
+		} catch (JsonLdError e) {
+			throw new MalformedJSONException(e);
+		}
+	}
+
+	@SuppressWarnings("unchecked")
+	// helper purely to avoid verbose casts
+	private Map<String, Object> jmap(Object jsonObject) {
+		return (Map<String, Object>) jsonObject;
+	}
+
+	private Object getJsonObject(String sourceUrl) {
+		try {
+			return JSONUtils.fromString(getRawJson(sourceUrl));
+		} catch (JsonParseException e) {
+			throw new MalformedJSONException(e);
+		} catch (JsonMappingException e) {
+			throw new MalformedJSONException(e);
+		} catch (IOException e) {
+			throw new MalformedJSONException(e);
+		}
+	}
+
+	private String getRawJson(String sourceUrl) {
+		return getJsonInvocBuilder(sourceUrl).get(String.class);
 	}
 
 	private Invocation.Builder getJsonInvocBuilder(String uri) {
