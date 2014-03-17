@@ -36,6 +36,8 @@ class JsonApi {
 		private String[] items;
 	}
 
+
+
 	@JsonIgnoreProperties({"@context"}) //workaround for https://track.intersect.org.au/browse/HCSVLAB-741
 	static class JsonCatalogItem {
 		@JsonProperty(value = "catalog_url")
@@ -85,55 +87,7 @@ class JsonApi {
 			return size;
 		}
 	}
-	
-	static class JsonAnnotation {
-		private String type;
-		private String label;
-		private float start;
-		private float end;
 
-		public String getType() {
-			return type;
-		}
-		public String getLabel() {
-			return label;
-		}
-		public float getStart() {
-			return start;
-		}
-		public float getEnd() {
-			return end;
-		}
-	}
-	
-	static class JsonAnnotationGroup {
-		@JsonProperty(value = "item_id")
-		private String itemId;
-		
-		private String utterance;
-		
-		@JsonProperty(value = "annotations_found")
-		private int annotationsFound;
-		
-		private JsonAnnotation[] annotations;
-
-		public String getItemId() {
-			return itemId;
-		}
-
-		public String getUtterance() {
-			return utterance;
-		}
-
-		public int getAnnotationsFound() {
-			return annotationsFound;
-		}
-
-		public JsonAnnotation[] getAnnotations() {
-			return annotations;
-		}
-		
-	}
 	
 	static class VersionResult {
 		@JsonProperty(value = "API version")
