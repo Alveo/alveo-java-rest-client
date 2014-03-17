@@ -1,15 +1,14 @@
 package com.nicta.vlabclient;
 
 import com.nicta.vlabclient.entity.Annotation;
+import com.nicta.vlabclient.entity.JSONLDKeys;
 
-import java.util.LinkedHashMap;
 import java.util.Map;
 
 /**
  * Created by amack on 20/02/14.
  */
-public abstract class BasicRestAnnotation implements Annotation {
-	protected final Map<String, Object> ldValues = new LinkedHashMap<String, Object>();
+public abstract class BasicRestAnnotation extends JsonLdDerivedObject implements Annotation {
 	protected String annId;
 	protected String type;
 	protected String label;
@@ -34,16 +33,16 @@ public abstract class BasicRestAnnotation implements Annotation {
 	protected void initJSONValuesFromFields() {
 		if (annId != null)
 			ldValues.put("@id", annId);
-		ldValues.put(JSONLDKeys.TYPE_ATTRIB, type);
+		ldValues.put(JSONLDKeys.ANNOTATION_TYPE, type);
 		if (label != null)
-			ldValues.put(JSONLDKeys.LABEL_ATTRIB, label);
+			ldValues.put(JSONLDKeys.ANNOTATION_LABEL, label);
 		ldValues.put("@type", valueType);
 		initCustomJSONValuesFromFields();
 	}
 
 	protected void initCustomJSONValuesFromFields() {
-		ldValues.put(JSONLDKeys.START_ATTRIB, start);
-		ldValues.put(JSONLDKeys.END_ATTRIB, end);
+		ldValues.put(JSONLDKeys.ANNOTATION_START, start);
+		ldValues.put(JSONLDKeys.ANNOTATION_END, end);
 	}
 
 	public String getType() {
@@ -75,4 +74,5 @@ public abstract class BasicRestAnnotation implements Annotation {
 	public Map<String, Object> uriToValueMap() {
 		return ldValues;
 	}
+
 }
