@@ -1,7 +1,5 @@
 package com.nicta.vlabclient;
 
-import com.github.jsonldjava.core.JSONLDProcessingError;
-
 /**
  * Created by amack on 19/02/14.
  */

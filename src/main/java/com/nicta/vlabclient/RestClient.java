@@ -3,8 +3,9 @@ package com.nicta.vlabclient;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
-import com.github.jsonldjava.core.JSONLD;
-import com.github.jsonldjava.core.JSONLDProcessingError;
+import com.github.jsonldjava.core.JsonLdOptions;
+import com.github.jsonldjava.core.JsonLdProcessor;
+import com.github.jsonldjava.core.JsonLdError;
 import com.github.jsonldjava.utils.JSONUtils;
 import com.nicta.vlabclient.JsonApi.JsonCatalogItem;
 import com.nicta.vlabclient.JsonApi.JsonDocument;
@@ -382,8 +383,8 @@ public class RestClient {
 			LOG.info("Raw annotation JSON: {}", jsonMap);
 			Map<String, Object> compacted = null;
 			try {
-				compacted = (Map<String, Object>) JSONLD.compact(jsonMap, defaultJSONLDSchema());
-			} catch (JSONLDProcessingError e) {
+				compacted = (Map<String, Object>) JsonLdProcessor.compact(jsonMap, defaultJSONLDSchema(), new JsonLdOptions());
+			} catch (JsonLdError e) {
 				throw new InvalidAnnotationException("Error compacting annotations using JSONLD", e);
 			}
 			return compacted;
@@ -395,8 +396,8 @@ public class RestClient {
 			// context,
 			// rather than to shorten each annotation (which is its primary use)
 			try {
-				return (Map<String, Object>) JSONLD.compact(jsonObj, EMPTY_MAP);
-			} catch (JSONLDProcessingError e) {
+				return (Map<String, Object>) JsonLdProcessor.compact(jsonObj, EMPTY_MAP, new JsonLdOptions());
+			} catch (JsonLdError e) {
 				throw new MalformedJSONException(e);
 			}
 		}
@@ -413,6 +414,8 @@ public class RestClient {
 			} catch (JsonParseException e) {
 				throw new MalformedJSONException(e);
 			} catch (JsonMappingException e) {
+				throw new MalformedJSONException(e);
+			} catch (IOException e) {
 				throw new MalformedJSONException(e);
 			}
 		}
@@ -460,6 +463,8 @@ public class RestClient {
 			LOG.warn("Invalid JSON schema found at {}; using empty context for uploaded annotations " +
 					"(this should not affect functionality but will increase upload time)", schemaURL());
 			cachedJSONLDSchema = new LinkedHashMap<String, Object>(0);
+		} catch (IOException e) {
+			throw new RuntimeException(e);
 		}
 		return cachedJSONLDSchema;
 	}
