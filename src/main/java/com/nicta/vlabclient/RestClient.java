@@ -326,16 +326,27 @@ public class RestClient {
 				return cachedJsonLdAnns;
 			cachedJsonLdAnns = new ArrayList<Map<String, Object>>();
 			Object jsonObj = getJsonObject(annotationsUrl);
+			workAroundValueTypeIssue(jmap(jsonObj));
 			Map<String, Object> compacted = getResolvedVersion(jsonObj);
-			Map<String, Object> annWrapper = jmap(compacted.get(JSONLDKeys.ANNOTATIONS));
 			Map<String, Object> commonProps = jmap(compacted.get(JSONLDKeys.COMMON_PROPERTIES));
-			List<Object> annObjects = (List<Object>) annWrapper.get("@list");
+			List<Object> annObjects = (List<Object>) compacted.get(JSONLDKeys.ANNOTATIONS);
 			for (Object annObj : annObjects) {
 				Map<String, Object> annAsMap = jmap(annObj);
 				annAsMap.putAll(commonProps);
 				cachedJsonLdAnns.add(annAsMap);
 			}
 			return cachedJsonLdAnns;
+		}
+
+		private void workAroundValueTypeIssue(Map<String, Object> jsonObj) {
+			// XXX: workaround for HCSVLAB-812
+			List<Object> anns = (List<Object>) jsonObj.get("hcsvlab:annotations");
+			for (Object annJson: anns) {
+				Map<String, Object> ann = jmap(annJson);
+				String valType = (String) ann.get("@type");
+				if (!valType.startsWith("#") && !valType.contains(":")) // no namespace prefix or frag prefix?
+					ann.put("@type", JSONLDKeys.PURL_SCHEMA + valType); // insert explicit prefix
+			}
 		}
 
 		@Override
@@ -461,7 +472,7 @@ public class RestClient {
 
 		private void initFieldsFromJSONValues() throws UnsupportedLDSchemaException {
 			docType = (String) getValue(JSONLDKeys.DOCUMENT_TYPE);
-			docSize = (String) getValue(JSONLDKeys.DOCUMENT_SIZE);
+			docSize = (String) getValue(JSONLDKeys.DOCUMENT_SIZE, true);
 			docUrl = (String) getValue(JSONLDKeys.DOCUMENT_URL);
 		}
 
