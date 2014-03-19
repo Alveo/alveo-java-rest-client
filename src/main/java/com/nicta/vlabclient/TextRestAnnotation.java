@@ -1,6 +1,7 @@
 package com.nicta.vlabclient;
 
 import com.nicta.vlabclient.entity.Document;
+import com.nicta.vlabclient.entity.JSONLDKeys;
 import com.nicta.vlabclient.entity.TextAnnotation;
 import com.nicta.vlabclient.entity.TextDocument;
 
@@ -46,8 +47,8 @@ public class TextRestAnnotation extends BasicRestAnnotation implements TextAnnot
 
 	@Override
 	protected void initCustomJSONValuesFromFields() {
-		ldValues.put(JSONLDKeys.START_ATTRIB, getStartOffset());
-		ldValues.put(JSONLDKeys.END_ATTRIB, getEndOffset());
+		ldValues.put(JSONLDKeys.ANNOTATION_START, getStartOffset());
+		ldValues.put(JSONLDKeys.ANNOTATION_END, getEndOffset());
 	}
 
 }
