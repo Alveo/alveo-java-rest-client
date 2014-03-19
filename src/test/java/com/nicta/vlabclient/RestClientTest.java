@@ -23,7 +23,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 @RunWith(JUnit4.class)
-public class RestClientTest {
+public class RestClientTest extends RestClientBaseTest {
 	/**
 	 * Class to test the Rest Client.
 	 * 
@@ -37,17 +37,25 @@ public class RestClientTest {
 
 	@Rule
 	public Recorder recorder = new Recorder();
+	private final RestClient restClient;
 
-//	@Betamax(tape = "standard_test")
+	public RestClientTest() throws RestClientException {
+		restClient = newRestClient();
+	}
+
+	//	@Betamax(tape = "standard_test")
 	@Test
 	public void fetchItemList() throws RestClientException {
-		RestClient rc = newRestClient();
-		ItemList il = rc.getItemList("45");
+		ItemList il = restClient.getItemList("45");
 		Assert.assertEquals(2, il.numItems());
 		List<Item> items = il.getCatalogItems();
 		Assert.assertEquals(il.numItems(), items.size());
-		Assert.assertEquals(items.get(1).getUri(), rc.getItem("gcsause:GCSAusE07").getUri());
-		Item item0 = items.get(1);
+		Assert.assertEquals(items.get(1).getUri(), restClient.getItem("gcsause:GCSAusE07").getUri());
+	}
+
+	@Test
+	public void fetchItem() throws RestClientException {
+		Item item0 = restClient.getItem("gcsause:GCSAusE07");
 		String item0text = item0.primaryText();
 		Assert.assertTrue(item0text.startsWith("Andy’s starting"));
 		Assert.assertTrue(item0text.endsWith("know"));
@@ -56,8 +64,7 @@ public class RestClientTest {
 //	@Betamax(tape = "standard_test")
 	@Test
 	public void fetchAnnotations() throws RestClientException {
-		RestClient rc = newRestClient();
-		Item item = rc.getItem("gcsause:GCSAusE07");
+		Item item = restClient.getItem("gcsause:GCSAusE07");
 		List<Annotation> anns = item.getAnnotations();
 		Assert.assertTrue(anns.size() > 20);
 	}
@@ -65,8 +72,7 @@ public class RestClientTest {
 //	@Betamax(tape = "standard_test")
 	@Test
 	public void checkAnnotations() throws RestClientException {
-		RestClient rc = newRestClient();
-		Item item = rc.getItem("gcsause:GCSAusE07");
+		Item item = restClient.getItem("gcsause:GCSAusE07");
 		List<Annotation> anns = item.getAnnotations();
 		TextAnnotation firstSpkrAnn = (TextAnnotation) anns.get(9);
 		Assert.assertEquals(93, firstSpkrAnn.getStartOffset());
@@ -82,8 +88,7 @@ public class RestClientTest {
 //	@Betamax(tape = "standard_test")
 	@Test
 	public void uploadAnnotations() throws RestClientException {
-		RestClient rc = newRestClient();
-		Item i0 = rc.getItem("gcsause:GCSAusE07");
+		Item i0 = restClient.getItem("gcsause:GCSAusE07");
 		List<Annotation> anns = new ArrayList<Annotation>();
 		anns.add(new TextRestAnnotation("entity", "proper-name", 0, 4));
 		anns.add(new TextRestAnnotation("pos", "NNP", 0, 4));
