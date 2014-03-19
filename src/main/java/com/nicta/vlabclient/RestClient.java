@@ -344,8 +344,10 @@ public class RestClient {
 			for (Object annJson: anns) {
 				Map<String, Object> ann = jmap(annJson);
 				String valType = (String) ann.get("@type");
-				if (!valType.startsWith("#") && !valType.contains(":")) // no namespace prefix or frag prefix?
+				if (valType != null && !valType.startsWith("#") && !valType.contains(":")) // no namespace prefix or frag prefix?
 					ann.put("@type", JSONLDKeys.PURL_SCHEMA + valType); // insert explicit prefix
+				if (valType == null) // XXX: workaround for HCSVLAB-719 - uploaded annotations can get null @type
+					ann.put("@type", JSONLDKeys.TEXT_ANNOTATION_VALUE_DEFAULT_TYPE); // at least JSONLD won't choke
 			}
 		}
 
