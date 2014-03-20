@@ -35,13 +35,14 @@ object Sanitizer {
   }
 
   def sanitizeAnnJson(sourceJson: String): String = {
-    val parsed = getMap(JSONUtils.fromString(sourceJson.replace("\n", "\\n")))
+    val parsed = getMap(JSONUtils.fromString(sourceJson.replace("\\n", """\\^""").replace("\n", "\\n")))
     val anns = getSeq(parsed("hcsvlab:annotations")).map(getMap)
     anns foreach { ann =>
-      ann("label") = wordReplacer.replaceWords(ann("label").asInstanceOf[String])
+      if (ann contains "label")
+        ann("label") = wordReplacer.replaceWords(ann("label").asInstanceOf[String])
     }
-    parsed("hcsvlab:annotations") = anns.asJava
-    JSONUtils.toString(parsed.asJava)
+    parsed("hcsvlab:annotations") = anns.map(_.asJava).asJava
+    JSONUtils.toString(parsed.asJava).replace("\\n", "\n").replace("""\\^""", "\\n")
   }
 
   def sanitizeText(sourceText: String): String =
