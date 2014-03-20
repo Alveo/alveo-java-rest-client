@@ -36,24 +36,6 @@ class JsonApi {
 		private String[] items;
 	}
 
-
-	static class JsonDocument {
-		private String url;
-		private String type;
-		private String size;
-		public String getUrl() {
-			return url;
-		}
-		
-		@JsonProperty(value = "dc:type")
-		public String getType() {
-			return type;
-		}
-		public String getSize() {
-			return size;
-		}
-	}
-
 	
 	static class VersionResult {
 		@JsonProperty(value = "API version")
