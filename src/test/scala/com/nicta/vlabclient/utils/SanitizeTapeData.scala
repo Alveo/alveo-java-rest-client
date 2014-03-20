@@ -18,24 +18,40 @@ import scala.collection.mutable
  * Use this by manually editing the betamax tapes, and running 'sanitize' on the body
  * for any item list retrievals
  */
-class SanitizeJson(tapename: String = "standard_test") {
+object Sanitizer {
   val wordReplacer = new WordReplacer()
 
-  val needsSanitizing = Seq("ausnc:Description", "ausnc:Contributorof", "ausnc:Participants",
-    "dc:creator", "full_text", "ausnc:Transcribers")
+  val needsSanitizingInItem = Seq("ausnc:Description", "ausnc:Contributorof", "ausnc:Participants",
+    "dc:creator", "hcsvlab:full_text", "ausnc:Transcribers")
 
-  def sanitize(sourceJson: String): String = {
+  def sanitizeItemJson(sourceJson: String): String = {
     val parsed = getMap(JSONUtils.fromString(sourceJson.replace("\n", "\\n")))
-    val metadata = getMap(parsed("metadata"))
-    needsSanitizing foreach { field =>
+    val metadata = getMap(parsed("hcsvlab:metadata"))
+    needsSanitizingInItem foreach { field =>
       metadata(field) = wordReplacer.replaceWords(metadata(field).asInstanceOf[String])
     }
-    parsed("metadata") = metadata.asJava
+    parsed("hcsvlab:metadata") = metadata.asJava
     JSONUtils.toString(parsed.asJava).replace("\\n", "\n")
   }
-  
+
+  def sanitizeAnnJson(sourceJson: String): String = {
+    val parsed = getMap(JSONUtils.fromString(sourceJson.replace("\n", "\\n")))
+    val anns = getSeq(parsed("hcsvlab:annotations")).map(getMap)
+    anns foreach { ann =>
+      ann("label") = wordReplacer.replaceWords(ann("label").asInstanceOf[String])
+    }
+    parsed("hcsvlab:annotations") = anns.asJava
+    JSONUtils.toString(parsed.asJava)
+  }
+
+  def sanitizeText(sourceText: String): String =
+    wordReplacer.replaceWords(sourceText)
+
   def getMap(fromJson: Object) =
     fromJson.asInstanceOf[util.LinkedHashMap[String, Object]].asScala
+
+  def getSeq(fromJson: Object) =
+    fromJson.asInstanceOf[util.ArrayList[Object]].asScala
 
 }
 
