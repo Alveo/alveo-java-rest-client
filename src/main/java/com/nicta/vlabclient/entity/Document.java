@@ -1,7 +1,5 @@
 package com.nicta.vlabclient.entity;
 
-import com.nicta.vlabclient.UnknownValueException;
-
 import javax.annotation.Nullable;
 
 /** A representation of a 'document' (version of an item) in the HCSvLab API with associated metadata

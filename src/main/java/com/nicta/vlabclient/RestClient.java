@@ -3,23 +3,20 @@ package com.nicta.vlabclient;
 import com.fasterxml.jackson.core.JsonParseException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
+import com.github.jsonldjava.core.JsonLdError;
 import com.github.jsonldjava.core.JsonLdOptions;
 import com.github.jsonldjava.core.JsonLdProcessor;
-import com.github.jsonldjava.core.JsonLdError;
 import com.github.jsonldjava.utils.JSONUtils;
 import com.nicta.vlabclient.JsonApi.JsonItemList;
 import com.nicta.vlabclient.JsonApi.VersionResult;
 import com.nicta.vlabclient.entity.*;
-import com.nicta.vlabclient.entity.JSONLDKeys;
+import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
+import org.apache.http.client.config.RequestConfig;
+import org.apache.http.client.methods.HttpPost;
 import org.apache.http.entity.ContentType;
 import org.apache.http.entity.mime.MultipartEntityBuilder;
-import org.apache.http.impl.client.SystemDefaultHttpClient;
-import org.apache.http.params.BasicHttpParams;
-import org.apache.http.params.CoreConnectionPNames;
-import org.apache.http.params.HttpParams;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.methods.HttpPost;
+import org.apache.http.impl.client.HttpClientBuilder;
 import org.jboss.resteasy.client.jaxrs.ClientHttpEngine;
 import org.jboss.resteasy.client.jaxrs.ResteasyClientBuilder;
 import org.jboss.resteasy.client.jaxrs.engines.ApacheHttpClient4Engine;
@@ -106,9 +103,10 @@ public class RestClient {
 	}
 	
 	private HttpClient newHttpClient() {
-		HttpParams params = new BasicHttpParams();
-		params.setIntParameter(CoreConnectionPNames.CONNECTION_TIMEOUT, 20000); // ann retrieval has been slow in the past
-		return new SystemDefaultHttpClient(params);
+		HttpClientBuilder builder = HttpClientBuilder.create().useSystemProperties(); // respect system proxy settings
+		RequestConfig config = RequestConfig.custom().setConnectTimeout(20000).build(); // in case we get slow annotation retrieval
+		builder.setDefaultRequestConfig(config);
+		return builder.build();
 	}
 
 	private void checkVersion() throws InvalidServerAddressException,
@@ -216,12 +214,17 @@ public class RestClient {
 		}
 
 
+		@SuppressWarnings("unchecked")
 		private void initFieldsFromJSONValues() throws UnsupportedLDSchemaException, UnknownValueException {
-			metadata = (Map<String, String>) getValue(JSONLDKeys.ITEM_METADATA);
-			primaryTextUrl = (String) getValue(JSONLDKeys.ITEM_PRIMARY_TEXT_URL);
-			annotationsUrl = (String) getValue(JSONLDKeys.ITEM_ANNOTATIONS_URL);
-			List<Map<String, Object>> rawDocs = (List<Map<String, Object>>) getValue(JSONLDKeys.ITEM_DOCUMENTS);
-			initializeDocuments(rawDocs);
+			try {
+				metadata = (Map<String, String>) getValue(JSONLDKeys.ITEM_METADATA);
+				primaryTextUrl = (String) getValue(JSONLDKeys.ITEM_PRIMARY_TEXT_URL);
+				annotationsUrl = (String) getValue(JSONLDKeys.ITEM_ANNOTATIONS_URL);
+				List<Map<String, Object>> rawDocs = (List<Map<String, Object>>) getValue(JSONLDKeys.ITEM_DOCUMENTS);
+				initializeDocuments(rawDocs);
+			} catch (ClassCastException e) {
+				throw new UnsupportedLDSchemaException("Error converting JSON-LD to Java - type mismatch", e);
+			}
 		}
 
 		private void initializeDocuments(List<Map<String, Object>> rawDocs) throws UnsupportedLDSchemaException, UnknownValueException {
@@ -384,7 +387,7 @@ public class RestClient {
 			HttpPost httpPost = new HttpPost(annUploadUri);
 			httpPost.addHeader("X-API-KEY", apiKey);
 			httpPost.setEntity(mpeBuilder.build());
-			HttpResponse response = null;
+			HttpResponse response;
 			try {
 				response = httpClient.execute(httpPost);
 			} catch (IOException e) {
@@ -416,9 +419,9 @@ public class RestClient {
 				annsJson.add(ann.uriToValueMap());
 			jsonMap.put("@graph", annsJson);
 			LOG.info("Raw annotation JSON: {}", jsonMap);
-			Map<String, Object> compacted = null;
+			Map<String, Object> compacted;
 			try {
-				compacted = (Map<String, Object>) JsonLdProcessor.compact(jsonMap, defaultJSONLDSchema(), new JsonLdOptions());
+				compacted = JsonLdProcessor.compact(jsonMap, defaultJSONLDSchema(), new JsonLdOptions());
 			} catch (JsonLdError e) {
 				throw new InvalidAnnotationException("Error compacting annotations using JSONLD", e);
 			}
@@ -864,7 +867,7 @@ public class RestClient {
 		// context,
 		// rather than to shorten each annotation (which is its primary use)
 		try {
-			return (Map<String, Object>) JsonLdProcessor.compact(jsonObj, EMPTY_MAP, new JsonLdOptions());
+			return JsonLdProcessor.compact(jsonObj, EMPTY_MAP, new JsonLdOptions());
 		} catch (JsonLdError e) {
 			throw new MalformedJSONException(e);
 		}

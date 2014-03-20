@@ -1,7 +1,5 @@
 package com.nicta.vlabclient;
 
-import com.nicta.vlabclient.entity.HCSvLabException;
-
 public class UnknownServerAPIVersionException extends HCSvLabRuntimeException {
 
 	public UnknownServerAPIVersionException() {

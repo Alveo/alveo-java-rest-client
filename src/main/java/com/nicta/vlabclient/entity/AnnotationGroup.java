@@ -1,7 +1,6 @@
 package com.nicta.vlabclient.entity;
 
 import java.util.List;
-import java.util.Map;
 
 /** A representation of an Item from a item list in the HCS vLab REST API
  * 

@@ -1,7 +1,5 @@
 package com.nicta.vlabclient.entity;
 
-import com.nicta.vlabclient.UnsupportedLDSchemaException;
-
 import java.util.List;
 import java.util.Map;
 
