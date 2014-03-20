@@ -20,28 +20,6 @@ public class RestClientLiveTest extends RestClientBaseTest {
 		super();
 	}
 
-
-	@Test
-	public void fetchItem() throws RestClientException {
-		super.fetchItem();
-	}
-
-	@Test
-	public void fetchAnnotations() throws RestClientException {
-		super.fetchAnnotations();
-	}
-
-	@Test
-	public void checkAnnotations() throws RestClientException {
-		super.checkAnnotations();
-	}
-
-	@Test
-	public void uploadAnnotations() throws RestClientException {
-		super.uploadAnnotations();
-	}
-
-
 	protected RestClient newRestClient() throws RestClientException {
 		try {
 			return new RestClient(liveServerBase(), liveApiKey());

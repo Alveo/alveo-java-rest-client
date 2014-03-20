@@ -29,7 +29,6 @@ public abstract class RestClientBaseTest {
 		return ConfigFactory.load().getConfig("vlabclient");
 	}
 
-	//	@Betamax(tape = "standard_test")
 	@Test
 	public void fetchItemList() throws RestClientException {
 		ItemList il = restClient.getItemList("45");
@@ -47,7 +46,6 @@ public abstract class RestClientBaseTest {
 		Assert.assertTrue(item0text.endsWith("know"));
 	}
 
-	//	@Betamax(tape = "standard_test")
 	@Test
 	public void fetchAnnotations() throws RestClientException {
 		Item item = restClient.getItem("gcsause:GCSAusE07");
@@ -55,7 +53,6 @@ public abstract class RestClientBaseTest {
 		Assert.assertTrue(anns.size() > 20);
 	}
 
-	//	@Betamax(tape = "standard_test")
 	@Test
 	public void checkAnnotations() throws RestClientException {
 		Item item = restClient.getItem("gcsause:GCSAusE07");
@@ -71,13 +68,13 @@ public abstract class RestClientBaseTest {
 		Assert.assertEquals(docText.length(), lastAnn.getEndOffset());
 	}
 
-	//	@Betamax(tape = "standard_test")
 	@Test
 	public void uploadAnnotations() throws RestClientException {
 		Item i0 = restClient.getItem("gcsause:GCSAusE07");
 		List<Annotation> anns = new ArrayList<Annotation>();
 		anns.add(new TextRestAnnotation("entity", "proper-name", 0, 4));
 		anns.add(new TextRestAnnotation("pos", "NNP", 0, 4));
+		// need different contents on successive runs or we get a duplicate file error
 		anns.add(new TextRestAnnotation("comment", "comment at time " + currDate(), 0, 4));
 		i0.storeNewAnnotations(anns);
 	}
