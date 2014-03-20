@@ -37,40 +37,6 @@ class JsonApi {
 	}
 
 
-
-	@JsonIgnoreProperties({"@context"}) //workaround for https://track.intersect.org.au/browse/HCSVLAB-741
-	static class JsonCatalogItem {
-		@JsonProperty(value = "catalog_url")
-		private String catalogUrl;
-		
-		private Map<String, String> metadata;
-		
-		@JsonProperty(value = "primary_text_url")
-		private String primaryTextUrl;
-		
-		@JsonProperty(value = "annotations_url")
-		private String annotationsUrl;
-		
-		private JsonDocument[] documents;
-
-		public String getCatalogUrl() {
-			return catalogUrl;
-		}
-		public Map<String, String> getMetadata() {
-			return metadata;
-		}
-		public String getPrimaryTextUrl() {
-			return primaryTextUrl;
-		}
-		public JsonDocument[] getDocuments() {
-			return documents;
-		}
-
-		public String getAnnotationsUrl() {
-			return annotationsUrl;
-		}
-	}
-
 	static class JsonDocument {
 		private String url;
 		private String type;
