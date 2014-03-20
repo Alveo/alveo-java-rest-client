@@ -2,8 +2,6 @@ package com.nicta.vlabclient.entity;
 
 import java.util.List;
 
-import com.nicta.vlabclient.UnauthorizedAPIKeyException;
-
 /** A representation of an HCS vLab item list. Modelled fairly closely on the JSON REST model,
  * but at a slightly higher level, with a number of convenience methods to enable 
  * easier retrieval of related objects, for example

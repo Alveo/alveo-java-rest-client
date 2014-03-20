@@ -4,9 +4,8 @@ import java.util.Map;
 
 import com.nicta.vlabclient.InvalidServerAddressException;
 import com.nicta.vlabclient.RestClient;
-import com.nicta.vlabclient.UnauthorizedAPIKeyException;
+import com.nicta.vlabclient.entity.UnauthorizedAPIKeyException;
 import com.nicta.vlabclient.entity.Annotation;
-import com.nicta.vlabclient.entity.Document;
 import com.nicta.vlabclient.entity.EntityNotFoundException;
 import com.nicta.vlabclient.entity.Item;
 import com.nicta.vlabclient.entity.ItemList;

@@ -3,6 +3,7 @@ package com.nicta.vlabclient;
 import co.freeside.betamax.Betamax;
 import co.freeside.betamax.Recorder;
 import co.freeside.betamax.TapeMode;
+import com.nicta.vlabclient.entity.HCSvLabException;
 import com.typesafe.config.ConfigException;
 import org.junit.Assume;
 import org.junit.BeforeClass;
@@ -56,43 +57,43 @@ public class RestClientRecordedTest extends RestClientBaseTest {
 	}
 
 
-	public RestClientRecordedTest() throws RestClientException {
+	public RestClientRecordedTest() throws HCSvLabException {
 		super();
 		recorder.setDefaultMode(inRecordMode() ? TapeMode.WRITE_ONLY : TapeMode.READ_ONLY);
 	}
 
 	@Betamax(tape = "standard_test")
 	@Test
-	public void fetchItemList() throws RestClientException {
+	public void fetchItemList() throws HCSvLabException {
 		super.fetchItemList();
 	}
 
 	@Betamax(tape = "standard_test")
 	@Test
-	public void fetchItem() throws RestClientException {
+	public void fetchItem() throws HCSvLabException {
 		super.fetchItem();
 	}
 
 	@Betamax(tape = "standard_test")
 	@Test
-	public void fetchAnnotations() throws RestClientException {
+	public void fetchAnnotations() throws HCSvLabException {
 		super.fetchAnnotations();
 	}
 
 	@Betamax(tape = "standard_test")
 	@Test
-	public void checkAnnotations() throws RestClientException {
+	public void checkAnnotations() throws HCSvLabException {
 		super.checkAnnotations();
 	}
 
 	@Betamax(tape = "standard_test")
 	@Test
-	public void uploadAnnotations() throws RestClientException {
+	public void uploadAnnotations() throws HCSvLabException {
 		super.uploadAnnotations();
 	}
 
 
-	protected RestClient newRestClient() throws RestClientException {
+	protected RestClient newRestClient() throws HCSvLabException {
 		try {
 			if (inRecordMode())
 				return new RestClient(liveServerBase(), liveApiKey());

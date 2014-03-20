@@ -1,19 +1,16 @@
 package com.nicta.vlabclient;
 
 import com.nicta.vlabclient.entity.Annotation;
+import com.nicta.vlabclient.entity.HCSvLabException;
 import com.nicta.vlabclient.entity.Item;
 import com.nicta.vlabclient.entity.ItemList;
 import com.nicta.vlabclient.entity.TextAnnotation;
 import com.typesafe.config.Config;
-import com.typesafe.config.ConfigException;
 import com.typesafe.config.ConfigFactory;
 import org.junit.Assert;
-import org.junit.Assume;
-import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.util.ArrayList;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 
@@ -23,7 +20,7 @@ import java.util.List;
 public abstract class RestClientBaseTest {
 	protected final RestClient restClient;
 
-	public RestClientBaseTest() throws RestClientException {
+	public RestClientBaseTest() throws HCSvLabException {
 		restClient = newRestClient();
 	}
 
@@ -32,7 +29,7 @@ public abstract class RestClientBaseTest {
 	}
 
 	@Test
-	public void fetchItemList() throws RestClientException {
+	public void fetchItemList() throws HCSvLabException {
 		ItemList il = restClient.getItemList("45");
 		Assert.assertEquals(2, il.numItems());
 		List<Item> items = il.getCatalogItems();
@@ -41,7 +38,7 @@ public abstract class RestClientBaseTest {
 	}
 
 	@Test
-	public void fetchItem() throws RestClientException {
+	public void fetchItem() throws HCSvLabException {
 		Item item0 = restClient.getItem("gcsause:GCSAusE07");
 		String item0text = item0.primaryText();
 		Assert.assertTrue(item0text.startsWith("Andy’s starting"));
@@ -49,14 +46,14 @@ public abstract class RestClientBaseTest {
 	}
 
 	@Test
-	public void fetchAnnotations() throws RestClientException {
+	public void fetchAnnotations() throws HCSvLabException {
 		Item item = restClient.getItem("gcsause:GCSAusE07");
 		List<Annotation> anns = item.getAnnotations();
 		Assert.assertTrue(anns.size() > 20);
 	}
 
 	@Test
-	public void checkAnnotations() throws RestClientException {
+	public void checkAnnotations() throws HCSvLabException {
 		Item item = restClient.getItem("gcsause:GCSAusE07");
 		List<Annotation> anns = item.getAnnotations();
 		TextAnnotation firstSpkrAnn = (TextAnnotation) anns.get(9);
@@ -71,7 +68,7 @@ public abstract class RestClientBaseTest {
 	}
 
 	@Test
-	public void uploadAnnotations() throws RestClientException {
+	public void uploadAnnotations() throws HCSvLabException {
 		Item i0 = restClient.getItem("gcsause:GCSAusE07");
 		List<Annotation> anns = new ArrayList<Annotation>();
 		anns.add(new TextRestAnnotation("entity", "proper-name", 0, 4));
@@ -85,7 +82,7 @@ public abstract class RestClientBaseTest {
 		return String.format("%tFT%<tRZ", new Date());
 	}
 
-	protected abstract RestClient newRestClient() throws RestClientException;
+	protected abstract RestClient newRestClient() throws HCSvLabException;
 
 	static String liveServerBase() {
 		return getConfig().getString("test.server-base");

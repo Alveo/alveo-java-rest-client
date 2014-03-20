@@ -1,6 +1,6 @@
-package com.nicta.vlabclient;
+package com.nicta.vlabclient.entity;
 
-public class UnauthorizedAPIKeyException extends RestClientException {
+public class UnauthorizedAPIKeyException extends HCSvLabException {
 
 	public UnauthorizedAPIKeyException() {
 	}

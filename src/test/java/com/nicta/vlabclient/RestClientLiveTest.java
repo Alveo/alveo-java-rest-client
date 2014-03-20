@@ -1,9 +1,9 @@
 package com.nicta.vlabclient;
 
+import com.nicta.vlabclient.entity.HCSvLabException;
 import com.typesafe.config.ConfigException;
 import org.junit.Assume;
 import org.junit.BeforeClass;
-import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 
@@ -32,11 +32,11 @@ public class RestClientLiveTest extends RestClientBaseTest {
 		}
 	}
 
-	public RestClientLiveTest() throws RestClientException {
+	public RestClientLiveTest() throws HCSvLabException {
 		super();
 	}
 
-	protected RestClient newRestClient() throws RestClientException {
+	protected RestClient newRestClient() throws HCSvLabException {
 		try {
 			return new RestClient(liveServerBase(), liveApiKey());
 		} catch (ConfigException e) {

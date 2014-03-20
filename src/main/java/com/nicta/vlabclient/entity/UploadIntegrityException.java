@@ -1,11 +1,9 @@
 package com.nicta.vlabclient.entity;
 
-import com.nicta.vlabclient.RestClientException;
-
 /**
  * Created by amack on 18/02/14.
  */
-public class UploadIntegrityException extends RestClientException {
+public class UploadIntegrityException extends HCSvLabException {
 	public UploadIntegrityException() {
 		super();
 	}

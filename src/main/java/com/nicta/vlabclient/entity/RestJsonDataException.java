@@ -1,11 +1,11 @@
 package com.nicta.vlabclient.entity;
 
-import com.nicta.vlabclient.RestClientRuntimeException;
+import com.nicta.vlabclient.HCSvLabRuntimeException;
 
 /**
  * Created by amack on 17/03/14.
  */
-public class RestJsonDataException extends RestClientRuntimeException {
+public class RestJsonDataException extends HCSvLabRuntimeException {
 	public RestJsonDataException() {
 	}
 

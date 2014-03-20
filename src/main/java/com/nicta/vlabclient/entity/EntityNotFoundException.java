@@ -1,8 +1,6 @@
 package com.nicta.vlabclient.entity;
 
-import com.nicta.vlabclient.RestClientException;
-
-public class EntityNotFoundException extends RestClientException {
+public class EntityNotFoundException extends HCSvLabException {
 
 	public EntityNotFoundException() {
 	}
