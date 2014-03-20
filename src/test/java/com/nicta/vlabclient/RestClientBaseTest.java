@@ -78,6 +78,11 @@ public abstract class RestClientBaseTest {
 		i0.storeNewAnnotations(anns);
 	}
 
+	@Test
+	public void createRestClient() throws HCSvLabException {
+		newRestClient();
+	}
+
 	private static String currDate() {
 		return String.format("%tFT%<tRZ", new Date());
 	}

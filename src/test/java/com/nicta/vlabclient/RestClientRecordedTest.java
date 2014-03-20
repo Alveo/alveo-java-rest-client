@@ -5,6 +5,12 @@ import co.freeside.betamax.Recorder;
 import co.freeside.betamax.TapeMode;
 import com.nicta.vlabclient.entity.HCSvLabException;
 import com.typesafe.config.ConfigException;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.config.RequestConfig;
+import org.apache.http.client.methods.HttpGet;
+import org.apache.http.impl.client.CloseableHttpClient;
+import org.apache.http.impl.client.HttpClientBuilder;
+import org.apache.http.impl.client.SystemDefaultHttpClient;
 import org.junit.Assume;
 import org.junit.BeforeClass;
 import org.junit.Rule;
@@ -13,6 +19,9 @@ import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import sun.net.www.http.HttpClient;
+
+import java.io.IOException;
 
 /**
  * Created by amack on 20/03/14.
@@ -23,13 +32,13 @@ public class RestClientRecordedTest extends RestClientBaseTest {
 	 * Class to test the Rest Client.
 	 * <p/>
 	 * Uses Betamax for offline-testing.
-	 *
+	 * <p/>
 	 * To record new entries (eg after a server API change), add the config item
 	 * "vlabclient.test.record-new" with value "true" to your
 	 * application.conf. If this is not found, it will be read only,
 	 * to avoid accidentally writing new license-encumbered
 	 * data to the repository.
-	 *
+	 * <p/>
 	 * Be very careful of licensing issues when
 	 * recording actual corpora -- if you write any new data, make sure
 	 * to remove any copyrighted data using the utilities in
@@ -49,17 +58,17 @@ public class RestClientRecordedTest extends RestClientBaseTest {
 	}
 
 	private static boolean shouldRun() {
-		try{
+		try {
 			return getConfig().getBoolean("test.run-recorded");
 		} catch (ConfigException e) {
-			return true; // don't run live tests by default
+			return true; // only run recorded tests by default
 		}
 	}
 
 
 	public RestClientRecordedTest() throws HCSvLabException {
 		super();
-		recorder.setDefaultMode(inRecordMode() ? TapeMode.WRITE_ONLY : TapeMode.READ_ONLY);
+		recorder.setDefaultMode(inRecordMode() ? TapeMode.READ_WRITE : TapeMode.READ_ONLY);
 	}
 
 	@Betamax(tape = "standard_test")
@@ -92,6 +101,11 @@ public class RestClientRecordedTest extends RestClientBaseTest {
 		super.uploadAnnotations();
 	}
 
+	@Betamax(tape = "standard_test")
+	@Test
+	public void createRestClient() throws HCSvLabException {
+		super.createRestClient();
+	}
 
 	protected RestClient newRestClient() throws HCSvLabException {
 		try {
@@ -104,6 +118,7 @@ public class RestClientRecordedTest extends RestClientBaseTest {
 			throw e;
 		}
 	}
+
 
 	private static boolean inRecordMode() {
 		try {
