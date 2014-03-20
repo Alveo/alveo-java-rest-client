@@ -4,6 +4,8 @@ import co.freeside.betamax.Betamax;
 import co.freeside.betamax.Recorder;
 import co.freeside.betamax.TapeMode;
 import com.typesafe.config.ConfigException;
+import org.junit.Assume;
+import org.junit.BeforeClass;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -38,6 +40,20 @@ public class RestClientRecordedTest extends RestClientBaseTest {
 
 	@Rule
 	public Recorder recorder = new Recorder();
+
+	@BeforeClass
+	public static void precheck() {
+		// ignore recorded tests if we request it
+		Assume.assumeTrue(shouldRun());
+	}
+
+	private static boolean shouldRun() {
+		try{
+			return getConfig().getBoolean("test.run-recorded");
+		} catch (ConfigException e) {
+			return true; // don't run live tests by default
+		}
+	}
 
 
 	public RestClientRecordedTest() throws RestClientException {

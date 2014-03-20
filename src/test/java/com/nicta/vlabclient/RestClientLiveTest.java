@@ -1,6 +1,8 @@
 package com.nicta.vlabclient;
 
 import com.typesafe.config.ConfigException;
+import org.junit.Assume;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
@@ -15,6 +17,20 @@ public class RestClientLiveTest extends RestClientBaseTest {
 	 */
 
 	private static final Logger LOG = LoggerFactory.getLogger(RestClientLiveTest.class);
+
+	@BeforeClass
+	public static void precheck() {
+		// ignore live tests unless we've asked for them
+		Assume.assumeTrue(shouldRun());
+	}
+
+	private static boolean shouldRun() {
+		try{
+			return getConfig().getBoolean("test.run-live");
+		} catch (ConfigException e) {
+			return false; // don't run live tests by default
+		}
+	}
 
 	public RestClientLiveTest() throws RestClientException {
 		super();
