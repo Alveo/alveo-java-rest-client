@@ -1,6 +1,6 @@
 package com.nicta.vlabclient;
 
-public class MalformedJSONException extends RuntimeException {
+public class MalformedJSONException extends HCSvLabRuntimeException {
 
 	public MalformedJSONException() {
 	}

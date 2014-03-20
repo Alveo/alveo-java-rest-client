@@ -107,7 +107,7 @@ public class RestClient {
 	
 	private HttpClient newHttpClient() {
 		HttpParams params = new BasicHttpParams();
-		params.setIntParameter(CoreConnectionPNames.CONNECTION_TIMEOUT, 60000); // 60 sec timeout since ann retrieval can be slow
+		params.setIntParameter(CoreConnectionPNames.CONNECTION_TIMEOUT, 20000); // ann retrieval has been slow in the past
 		return new SystemDefaultHttpClient(params);
 	}
 
@@ -184,7 +184,7 @@ public class RestClient {
 		 * 
 		 * @see com.nicta.vlabclient.ItemList#getCatalogItems()
 		 */
-		public List<Item> getCatalogItems() throws UnauthorizedAPIKeyException, RestJsonDataException {
+		public List<Item> getCatalogItems() throws UnauthorizedAPIKeyException {
 			List<Item> cis = new ArrayList<Item>();
 			for (String itemUri : itemUris()) 
 				cis.add(getItemByUri(itemUri));
@@ -277,6 +277,12 @@ public class RestClient {
 			return metadata;
 		}
 
+		/**
+		 *
+		 * @throws UnsupportedLDSchemaException if the schema cannot be interpreted, meaning it has
+		 *  a stucture which this code version cannot map to a POJO
+		 */
+		@Override
 		public List<Annotation> getAnnotations() throws UnsupportedLDSchemaException {
 			List<Annotation> anns = new ArrayList<Annotation>();
 			Map<String, Document> rawDocCache = Collections.synchronizedMap(new HashMap<String, Document>(1));
@@ -295,6 +301,12 @@ public class RestClient {
 			return anns;
 		}
 
+		/**
+		 *
+		 * @throws UnsupportedLDSchemaException if the schema cannot be interpreted, meaning it has
+		 *  a stucture which this code version cannot map to a POJO
+		 */
+		@Override
 		public List<TextAnnotation> getTextAnnotations() throws UnsupportedLDSchemaException {
 			List<TextAnnotation> res = new ArrayList<TextAnnotation>();
 			for (Annotation ann : getAnnotations()) {
@@ -307,6 +319,11 @@ public class RestClient {
 		}
 
 		@Override
+		/**
+		 *
+		 * @throws UnsupportedLDSchemaException if the schema cannot be interpreted, meaning it has
+		 *  a stucture which this code version cannot map to a POJO
+		 */
 		public List<AudioAnnotation> getAudioAnnotations() throws UnsupportedLDSchemaException {
 			List<AudioAnnotation> res = new ArrayList<AudioAnnotation>();
 			for (Annotation ann : getAnnotations()) {
@@ -498,7 +515,7 @@ public class RestClient {
 		/*
 		 * (non-Javadoc)
 		 * 
-		 * @see com.nicta.vlabclient.Document#getSize()
+		 * @see com.nicta.vlabclient.entity.Document#getSize()
 		 */
 		@Nullable
 		public String getSize() throws UnknownValueException {
@@ -551,10 +568,10 @@ public class RestClient {
 		}
 
 		/*
-				 * (non-Javadoc)
-				 *
-				 * @see com.nicta.vlabclient.Document#rawText()
-				 */
+		 * (non-Javadoc)
+		 *
+		 * @see com.nicta.vlabclient.entity.TextDocument#rawText()
+		 */
 		public String rawText() {
 			return getTextInvocBuilder(getDataUrl()).get(String.class);
 		}

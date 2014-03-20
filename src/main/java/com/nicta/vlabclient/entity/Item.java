@@ -1,6 +1,6 @@
 package com.nicta.vlabclient.entity;
 
-import com.nicta.vlabclient.InvalidAnnotationException;
+import com.nicta.vlabclient.UnsupportedLDSchemaException;
 
 import java.util.List;
 import java.util.Map;
@@ -47,26 +47,20 @@ public interface Item {
 	/** Get the (possibly empty) list of associated annotations.
 	 * 
 	 * @return The annotations which are linked to this item.
-	 * @throws UnsupportedLDSchemaException if the schema cannot be interpreted, meaning it has
-	 *  a stucture which this code version cannot map to a POJO
 	 */
-	public List<Annotation> getAnnotations() throws UnsupportedLDSchemaException;
+	public List<Annotation> getAnnotations();
 
 	/** Get the (possibly empty) list of associated text annotations.
 	 * 
 	 * @return The text annotations which are linked to this item.
-	 * @throws UnsupportedLDSchemaException if the schema cannot be interpreted, meaning it has
-	 *  a stucture which this code version cannot map to a POJO
 	 */
-	public List<TextAnnotation> getTextAnnotations() throws UnsupportedLDSchemaException;
+	public List<TextAnnotation> getTextAnnotations();
 
 	/** Get the (possibly empty) list of associated text annotations.
 	 * 
 	 * @return The text annotations which are linked to this item.
-	 * @throws UnsupportedLDSchemaException if the schema cannot be interpreted, meaning it has
-	 *  a stucture which this code version cannot map to a POJO
 	 */
-	public List<AudioAnnotation> getAudioAnnotations() throws UnsupportedLDSchemaException;
+	public List<AudioAnnotation> getAudioAnnotations();
 
 	
 	
@@ -78,6 +72,13 @@ public interface Item {
 	public List<Map<String, Object>> annotationsAsJSONLD();
 
 
-	/** Store a new set of annotations associated with this item to the server */
-	public void storeNewAnnotations(List<Annotation> annotations) throws EntityNotFoundException, UploadIntegrityException, InvalidAnnotationException;
+	/** Store a new set of annotations associated with this item to the server
+	 *
+	 * @param annotations a list of annotation objects
+	 * @throws EntityNotFoundException If the item could not be found
+	 * @throws UploadIntegrityException If the upload fails due to a problem with the data
+	 * @throws InvalidAnnotationException If the annotation is invalid for any reason
+	 */
+	public void storeNewAnnotations(List<Annotation> annotations) throws EntityNotFoundException,
+			UploadIntegrityException, InvalidAnnotationException;
 }

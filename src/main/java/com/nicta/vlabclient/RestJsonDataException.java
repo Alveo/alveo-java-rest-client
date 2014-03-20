@@ -1,4 +1,4 @@
-package com.nicta.vlabclient.entity;
+package com.nicta.vlabclient;
 
 import com.nicta.vlabclient.HCSvLabRuntimeException;
 

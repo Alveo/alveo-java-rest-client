@@ -1,5 +1,7 @@
 package com.nicta.vlabclient.entity;
 
+import com.nicta.vlabclient.UnknownValueException;
+
 import javax.annotation.Nullable;
 
 /** A representation of a 'document' (version of an item) in the HCSvLab API with associated metadata
@@ -23,7 +25,7 @@ public interface Document {
 	 * @return The document type according to vLab, indicating how the document relates to the item,
 	 *  such as "Original", "Raw" or "Text"
 	 */
-	public String getType() throws UnknownValueException;
+	public String getType();
 
 	/** Get the document size
 	 * 
@@ -31,7 +33,7 @@ public interface Document {
 	 * that is what is returned by the underlying JSON
 	 */
 	@Nullable
-	public String getSize() throws UnknownValueException;
+	public String getSize();
 
 
 }

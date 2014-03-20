@@ -1,24 +1,22 @@
 package com.nicta.vlabclient;
 
-public class UnknownServerAPIVersionException extends RestClientException {
+import com.nicta.vlabclient.entity.HCSvLabException;
+
+public class UnknownServerAPIVersionException extends HCSvLabRuntimeException {
 
 	public UnknownServerAPIVersionException() {
-		// TODO Auto-generated constructor stub
 	}
 
 	public UnknownServerAPIVersionException(String message) {
 		super(message);
-		// TODO Auto-generated constructor stub
 	}
 
 	public UnknownServerAPIVersionException(Throwable cause) {
 		super(cause);
-		// TODO Auto-generated constructor stub
 	}
 
 	public UnknownServerAPIVersionException(String message, Throwable cause) {
 		super(message, cause);
-		// TODO Auto-generated constructor stub
 	}
 
 }

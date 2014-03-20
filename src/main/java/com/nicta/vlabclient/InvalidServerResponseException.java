@@ -3,7 +3,7 @@ package com.nicta.vlabclient;
 /**
  * Created by amack on 19/02/14.
  */
-public class InvalidServerResponseException extends RestClientRuntimeException {
+public class InvalidServerResponseException extends HCSvLabRuntimeException {
 	public InvalidServerResponseException() {
 		super();
 	}

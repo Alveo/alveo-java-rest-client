@@ -28,7 +28,7 @@ public interface ItemList {
 	public int numItems();
 
 	/** Fetch the items associated with this item list 
-	 * @throws UnauthorizedAPIKeyException */
+	 * @throws UnauthorizedAPIKeyException if the API key is invalid */
 	public List<Item> getCatalogItems() throws UnauthorizedAPIKeyException;
 
 }

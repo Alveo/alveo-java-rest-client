@@ -1,6 +1,8 @@
-package com.nicta.vlabclient;
+package com.nicta.vlabclient.entity;
 
-public class InvalidServerAddressException extends RestClientException {
+import com.nicta.vlabclient.entity.HCSvLabException;
+
+public class InvalidServerAddressException extends HCSvLabException {
 
 	public InvalidServerAddressException() {
 	}

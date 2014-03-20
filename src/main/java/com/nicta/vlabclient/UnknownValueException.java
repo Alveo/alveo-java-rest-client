@@ -1,4 +1,4 @@
-package com.nicta.vlabclient.entity;
+package com.nicta.vlabclient;
 
 public class UnknownValueException extends RestJsonDataException {
 

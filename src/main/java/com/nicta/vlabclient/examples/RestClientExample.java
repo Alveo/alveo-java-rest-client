@@ -2,7 +2,7 @@ package com.nicta.vlabclient.examples;
 
 import java.util.Map;
 
-import com.nicta.vlabclient.InvalidServerAddressException;
+import com.nicta.vlabclient.entity.InvalidServerAddressException;
 import com.nicta.vlabclient.RestClient;
 import com.nicta.vlabclient.entity.UnauthorizedAPIKeyException;
 import com.nicta.vlabclient.entity.Annotation;

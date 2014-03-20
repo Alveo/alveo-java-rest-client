@@ -1,9 +1,11 @@
-package com.nicta.vlabclient;
+package com.nicta.vlabclient.entity;
+
+import com.nicta.vlabclient.entity.HCSvLabException;
 
 /**
  * Created by amack on 19/02/14.
  */
-public class InvalidAnnotationException extends RestClientException {
+public class InvalidAnnotationException extends HCSvLabException {
 	public InvalidAnnotationException() {
 		super();
 	}
