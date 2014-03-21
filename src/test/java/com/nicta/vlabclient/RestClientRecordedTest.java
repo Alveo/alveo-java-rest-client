@@ -5,12 +5,6 @@ import co.freeside.betamax.Recorder;
 import co.freeside.betamax.TapeMode;
 import com.nicta.vlabclient.entity.HCSvLabException;
 import com.typesafe.config.ConfigException;
-import org.apache.http.HttpResponse;
-import org.apache.http.client.config.RequestConfig;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClientBuilder;
-import org.apache.http.impl.client.SystemDefaultHttpClient;
 import org.junit.Assume;
 import org.junit.BeforeClass;
 import org.junit.Rule;
@@ -19,9 +13,6 @@ import org.junit.runner.RunWith;
 import org.junit.runners.JUnit4;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import sun.net.www.http.HttpClient;
-
-import java.io.IOException;
 
 /**
  * Created by amack on 20/03/14.
@@ -44,6 +35,7 @@ public class RestClientRecordedTest extends RestClientBaseTest {
 	 * to remove any copyrighted data using the utilities in
 	 * com/nicta/vlabclient/utils/SanitizeTapeData.scala; in addition,
 	 * you'll need to replace your API key with the text FAKE_API_KEY
+	 *
 	 */
 
 	private static final Logger LOG = LoggerFactory.getLogger(RestClientRecordedTest.class);
