@@ -10,6 +10,7 @@ import com.github.jsonldjava.utils.JSONUtils;
 import com.nicta.vlabclient.JsonApi.JsonItemList;
 import com.nicta.vlabclient.JsonApi.VersionResult;
 import com.nicta.vlabclient.entity.*;
+import com.nicta.vlabclient.util.TypeUriFixer;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.config.RequestConfig;
@@ -110,7 +111,7 @@ public class RestClient {
 
 	/**
 	 * Get a SPARQL repository for the given collection, which can be
-	 * used to execute arbitrary SPARQL queries against the server.
+	 * used to execute arbitrary SPARQL queries against the server using Sesame.
 	 *
 	 * Example usage:
 	 * <pre>
@@ -127,14 +128,16 @@ public class RestClient {
 	 }
 	 * </pre>
 	 *
-
+	 * (Note that Jena is not suitable as an API for this until its
+	 * HTTP client supports customising the HTTP headers, which is
+	 * one reason for using Sesame)
 	 *
 	 * @param collectionName The name of the collection to query against
 	 * @return a SPARQL repository which can be used for querying.
 	 *
 	 * @throws RepositoryException If there is an error with the repository
 	 */
-	public SPARQLRepository getSparqlRepository(String collectionName) throws RepositoryException {
+	public SPARQLRepository getSPARQLRepository(String collectionName) throws RepositoryException {
 		SPARQLRepository repo = new SPARQLRepository(String.format("%ssparql/%s", serverBaseUri, collectionName));
 		repo.initialize();
 		Map<String, String> headers = new HashMap<String, String>(1);
@@ -658,25 +661,11 @@ public class RestClient {
 			initFieldsFromJSONValues();
 		}
 
+
 		private void initFieldsFromJSONValues() throws UnsupportedLDSchemaException {
 			annId = (String) getValue("@id");
 			type = (String) getValue(JSONLDKeys.ANNOTATION_TYPE);
-			boolean isUri = true;
-			try { // XXX: workaround for legacy types which are not yet URIs
-				URI uri = new URI(type);
-				if (uri.getScheme() == null && uri.getHost() == null)
-					isUri = false;
-			} catch (URISyntaxException e) {
-				isUri = false;
-			}
-			if (!isUri) {
-				// if we're here, what we got didn't look like a URI
-				try {
-					type = "http://example.org/mock-types/" + URLEncoder.encode(type, "UTF-8");
-				} catch (UnsupportedEncodingException e2) {
-					throw new RuntimeException(e2);
-				}
-			}
+			type = TypeUriFixer.convertToUriIfNeeded(type); // XXX: temp workaround
 			label = (String) getValue(JSONLDKeys.ANNOTATION_LABEL, true);
 			start = readDouble(getValue(JSONLDKeys.ANNOTATION_START));
 			end = readDouble(getValue(JSONLDKeys.ANNOTATION_END));
