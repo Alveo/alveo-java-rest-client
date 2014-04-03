@@ -20,6 +20,8 @@ import org.apache.http.impl.client.HttpClientBuilder;
 import org.jboss.resteasy.client.jaxrs.ClientHttpEngine;
 import org.jboss.resteasy.client.jaxrs.ResteasyClientBuilder;
 import org.jboss.resteasy.client.jaxrs.engines.ApacheHttpClient4Engine;
+import org.openrdf.repository.RepositoryException;
+import org.openrdf.repository.sparql.SPARQLRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -104,6 +106,41 @@ public class RestClient {
 //		// instead of the more usual ClientBuilder.newClient(), we do this to specify the engine:
 		client = new ResteasyClientBuilder().httpEngine(httpEngine).build();
 		checkVersion();
+	}
+
+	/**
+	 * Get a SPARQL repository for the given collection, which can be
+	 * used to execute arbitrary SPARQL queries against the server.
+	 *
+	 * Example usage:
+	 * <pre>
+	 {@code SPARQLRepository repo = client.getSparqlRepository(collection);
+	 String sparql = "SELECT DISTINCT ?type WHERE { ?ann <http://purl.org/dada/schema/0.2#type> ?type . }";
+	 RepositoryConnection conn = repo.getConnection();
+	 TupleQuery query = conn.prepareTupleQuery(QueryLanguage.SPARQL, sparql);
+	 TupleQueryResult result = query.evaluate();
+	 result.getBindingNames();
+	 while (result.hasNext()) {
+	 	BindingSet bs = result.next();
+	 	System.out.println("Type: " + bs.getValue("type"));
+	 }
+	 }
+	 * </pre>
+	 *
+
+	 *
+	 * @param collectionName The name of the collection to query against
+	 * @return a SPARQL repository which can be used for querying.
+	 *
+	 * @throws RepositoryException If there is an error with the repository
+	 */
+	public SPARQLRepository getSparqlRepository(String collectionName) throws RepositoryException {
+		SPARQLRepository repo = new SPARQLRepository(String.format("%ssparql/%s", serverBaseUri, collectionName));
+		repo.initialize();
+		Map<String, String> headers = new HashMap<String, String>(1);
+		headers.put("X-API-KEY", apiKey);
+		repo.setAdditionalHttpHeaders(headers);
+		return repo;
 	}
 	
 	private HttpClient newHttpClient() {
