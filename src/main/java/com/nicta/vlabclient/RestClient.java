@@ -31,6 +31,10 @@ import javax.ws.rs.client.Client;
 import javax.ws.rs.client.Invocation;
 import javax.ws.rs.core.MediaType;
 import java.io.IOException;
+import java.io.UnsupportedEncodingException;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.net.URLEncoder;
 import java.nio.charset.Charset;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -113,7 +117,7 @@ public class RestClient {
 			UnknownServerAPIVersionException {
 		VersionResult verRes;
 		try {
-			verRes = getJsonInvocBuilder(serverBaseUri + "/version").get(VersionResult.class);
+			verRes = getJsonInvocBuilder(serverBaseUri + "/version.json").get(VersionResult.class);
 		} catch (ProcessingException e) {
 			throw new InvalidServerAddressException("Server URI " + serverBaseUri
 					+ " may be invalid", e);
@@ -620,6 +624,22 @@ public class RestClient {
 		private void initFieldsFromJSONValues() throws UnsupportedLDSchemaException {
 			annId = (String) getValue("@id");
 			type = (String) getValue(JSONLDKeys.ANNOTATION_TYPE);
+			boolean isUri = true;
+			try { // XXX: workaround for legacy types which are not yet URIs
+				URI uri = new URI(type);
+				if (uri.getScheme() == null && uri.getHost() == null)
+					isUri = false;
+			} catch (URISyntaxException e) {
+				isUri = false;
+			}
+			if (!isUri) {
+				// if we're here, what we got didn't look like a URI
+				try {
+					type = "http://example.org/mock-types/" + URLEncoder.encode(type, "UTF-8");
+				} catch (UnsupportedEncodingException e2) {
+					throw new RuntimeException(e2);
+				}
+			}
 			label = (String) getValue(JSONLDKeys.ANNOTATION_LABEL, true);
 			start = readDouble(getValue(JSONLDKeys.ANNOTATION_START));
 			end = readDouble(getValue(JSONLDKeys.ANNOTATION_END));
