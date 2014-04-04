@@ -77,6 +77,6 @@ public interface Item {
 	 * @throws UploadIntegrityException If the upload fails due to a problem with the data
 	 * @throws InvalidAnnotationException If the annotation is invalid for any reason
 	 */
-	public void storeNewAnnotations(List<Annotation> annotations) throws EntityNotFoundException,
+	public void storeNewAnnotations(List<? extends Annotation> annotations) throws EntityNotFoundException,
 			UploadIntegrityException, InvalidAnnotationException;
 }

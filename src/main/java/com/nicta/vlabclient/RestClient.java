@@ -416,7 +416,7 @@ public class RestClient {
 		}
 
 		@Override
-		public void storeNewAnnotations(List<Annotation> annotations)
+		public void storeNewAnnotations(List<? extends Annotation> annotations)
 				throws EntityNotFoundException, UploadIntegrityException, InvalidAnnotationException {
 			String annUploadUri = uri + "/annotations";
 			// HCS vLab expects a multipart file upload of the JSON rather than raw post data.
@@ -456,7 +456,7 @@ public class RestClient {
 			}
 		}
 
-		private Map<String, Object> jsonMapForAnnUpload(List<Annotation> annotations) throws InvalidAnnotationException {
+		private Map<String, Object> jsonMapForAnnUpload(List<? extends Annotation> annotations) throws InvalidAnnotationException {
 			LinkedHashMap<String, Object> jsonMap = new LinkedHashMap<String, Object>(1);
 			List<Map<String, Object>> annsJson = new ArrayList<Map<String, Object>>(annotations.size());
 			for (Annotation ann: annotations)
