@@ -63,7 +63,7 @@ public abstract class RestClientBaseTest {
 		String docText = item.primaryText();
 		String annText = docText.substring(firstSpkrAnn.getStartOffset(), firstSpkrAnn.getEndOffset());
 		Assert.assertTrue(annText.startsWith("having") && annText.replaceAll(" *$", "").endsWith("nap"));
-		Assert.assertEquals(firstSpkrAnn.getType(), "speaker");
+		Assert.assertEquals("http://hcsvlab.org/bare-types/speaker", firstSpkrAnn.getType());
 		TextAnnotation lastAnn = (TextAnnotation) anns.get(anns.size() - 1);
 		Assert.assertEquals(docText.length(), lastAnn.getEndOffset());
 	}
