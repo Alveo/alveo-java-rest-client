@@ -306,3 +306,30 @@ interactions:
       X-Runtime: '0.007992'
       X-UA-Compatible: IE=Edge,chrome=1
     body: '{"API version":"Sprint_21_demo"}'
+- recorded: 2014-03-20T23:22:18.020Z
+  request:
+    method: GET
+    uri: http://ic2-hcsvlab-staging2-vm.intersect.org.au/version.json
+    headers:
+      Accept: application/json, application/json
+      Accept-Encoding: gzip, deflate
+      Host: ic2-hcsvlab-staging2-vm.intersect.org.au
+      Proxy-Connection: Keep-Alive
+      User-Agent: Apache-HttpClient/4.3.1 (java 1.5)
+      X-API-KEY: FAKE_API_KEY
+  response:
+    status: 200
+    headers:
+      Cache-Control: no-cache, no-store, max-age=0, must-revalidate
+      Content-Type: application/json; charset=utf-8
+      Date: Thu, 20 Mar 2014 23:22:02 GMT
+      Expires: Fri, 01 Jan 1990 00:00:00 GMT
+      Pragma: no-cache
+      Server: Apache/2.2.15 (CentOS)
+      Status: 200 OK
+      X-Powered-By: Phusion Passenger 4.0.5
+      X-Rack-Cache: miss
+      X-Request-Id: 7eb317eadc85a539d94b0d1b0112f79a
+      X-Runtime: '0.007992'
+      X-UA-Compatible: IE=Edge,chrome=1
+    body: '{"API version":"Sprint_21_demo"}'
