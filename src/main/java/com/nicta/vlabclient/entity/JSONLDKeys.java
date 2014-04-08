@@ -8,7 +8,7 @@ import java.util.Set;
 * Created by amack on 17/03/14.
 */
 public class JSONLDKeys {
-	public static final String ANNOTATIONS = fullHcsvLabUri("annotations");
+	public static final String ANNOTATIONS = fullAlveoUri("annotations");
 	public static final String COMMON_PROPERTIES = "http://purl.org/dada/schema/0.2#commonProperties";
 	public static final String TEXT_ANNOTATION_VALUE_DEFAULT_TYPE = "http://purl.org/dada/schema/0.2#TextAnnotation";
 	public static final Set<String> TEXT_ANNOTATION_VALUE_TYPE_SYNS = new HashSet<String>();
@@ -18,20 +18,20 @@ public class JSONLDKeys {
 	public static final String ANNOTATION_START = fullAttribUri("start");
 	public static final String ANNOTATION_LABEL = fullAttribUri("label");
 	public static final String ANNOTATION_TYPE = fullAttribUri("type");
-	public static final String ANNOTATION_ANNOTATES = fullHcsvLabUri("annotates");
+	public static final String ANNOTATION_ANNOTATES = fullAlveoUri("annotates");
 
-	public static final String ITEM_METADATA = fullHcsvLabUri("metadata");
-	public static final String ITEM_DOCUMENTS = fullHcsvLabUri("documents");
-	public static final String ITEM_ANNOTATIONS_URL = fullHcsvLabUri("annotations_url");
-	public static final String ITEM_PRIMARY_TEXT_URL = fullHcsvLabUri("primary_text_url");
+	public static final String ITEM_METADATA = fullAlveoUri("metadata");
+	public static final String ITEM_DOCUMENTS = fullAlveoUri("documents");
+	public static final String ITEM_ANNOTATIONS_URL = fullAlveoUri("annotations_url");
+	public static final String ITEM_PRIMARY_TEXT_URL = fullAlveoUri("primary_text_url");
 
 	public static final String DOCUMENT_TYPE = "http://purl.org/dc/terms/type";
-	public static final String DOCUMENT_URL = fullHcsvLabUri("url");
-	public static final String DOCUMENT_SIZE = fullHcsvLabUri("size");
+	public static final String DOCUMENT_URL = fullAlveoUri("url");
+	public static final String DOCUMENT_SIZE = fullAlveoUri("size");
 
-	private static final String hcsvLabBase = "http://hcsvlab.org.au/schema/";
-	private static String fullHcsvLabUri(String suffix) {
-		return String.format("%s%s", hcsvLabBase, suffix);
+	private static final String alveoSchemaBase = "http://alveo.org.au/schema/";
+	private static String fullAlveoUri(String suffix) {
+		return String.format("%s%s", alveoSchemaBase, suffix);
 	}
 
 
