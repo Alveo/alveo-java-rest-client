@@ -405,6 +405,8 @@ public class RestClient {
 		private void workAroundValueTypeIssue(Map<String, Object> jsonObj) {
 			// XXX: workaround for HCSVLAB-812
 			List<Object> anns = (List<Object>) jsonObj.get("hcsvlab:annotations");
+			if (anns == null)
+				return; // updated API - probably don't need workaround
 			for (Object annJson: anns) {
 				Map<String, Object> ann = jmap(annJson);
 				String valType = (String) ann.get("@type");
@@ -803,7 +805,7 @@ public class RestClient {
 	 * Get the catalog item with the supplied ID
 	 * 
 	 * @param itemId
-	 *            the ID of the item, such as 'hcsvlab:456'
+	 *            the ID of the item, such as 'gcsause/GCSAusE05'
 	 * @return the requested item
 	 * @throws EntityNotFoundException
 	 *             If the item with the supplied ID could not be found 
@@ -823,7 +825,7 @@ public class RestClient {
 	 * Get the catalog item at the supplied URI
 	 * 
 	 * @param itemUri
-	 *            the fully qualified URI of the item, such as 'http://vlab.example.org/catalog/hcsvlab:456'
+	 *            the fully qualified URI of the item, such as 'http://vlab.example.org/catalog/gcsause/GCSAusE05'
 	 * @return the requested item
 	 * @throws UnauthorizedAPIKeyException
 	 *             if the API key does not permit access
