@@ -3,18 +3,18 @@
 				 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>com.nicta</groupId>
-	<version>0.5.1-SNAPSHOT</version>
+	<version>0.6.0-SNAPSHOT</version>
 	<packaging>jar</packaging>
 	<name>vlabclient</name>
-	<url>http://opennicta.com/home/health/vlabclient</url>
+	<url>http://bitbucket.org/andymackinlay/vlabclient</url>
 	<organization>
-		<name>National ICT Australia</name>
-		<url>http://nicta.com.au/</url>
+		<name>Alveo</name>
+		<url>http://alveo.edu.au/</url>
 	</organization>
 	<developers>
 		<developer>
 			<name>Andrew MacKinlay</name>
-			<email>andrew.mackinlay@nicta.com.au</email>
+			<email>andrew.mackinlay@rmit.edu.au</email>
 		</developer>
 	</developers>
 	<inceptionYear>2013</inceptionYear>
