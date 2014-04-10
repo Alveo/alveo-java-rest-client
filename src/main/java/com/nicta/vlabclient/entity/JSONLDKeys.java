@@ -29,7 +29,7 @@ public class JSONLDKeys {
 	public static final String DOCUMENT_URL = fullAlveoUri("url");
 	public static final String DOCUMENT_SIZE = fullAlveoUri("size");
 
-	private static final String alveoSchemaBase = "http://alveo.org.au/schema/";
+	private static final String alveoSchemaBase = "http://alveo.edu.au/schema/";
 	private static String fullAlveoUri(String suffix) {
 		return String.format("%s%s", alveoSchemaBase, suffix);
 	}

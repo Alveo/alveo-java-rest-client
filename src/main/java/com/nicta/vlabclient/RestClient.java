@@ -10,7 +10,6 @@ import com.github.jsonldjava.utils.JSONUtils;
 import com.nicta.vlabclient.JsonApi.JsonItemList;
 import com.nicta.vlabclient.JsonApi.VersionResult;
 import com.nicta.vlabclient.entity.*;
-import com.nicta.vlabclient.util.TypeUriFixer;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.client.config.RequestConfig;
@@ -34,10 +33,6 @@ import javax.ws.rs.client.Client;
 import javax.ws.rs.client.Invocation;
 import javax.ws.rs.core.MediaType;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.net.URI;
-import java.net.URISyntaxException;
-import java.net.URLEncoder;
 import java.nio.charset.Charset;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -390,7 +385,6 @@ public class RestClient {
 				return cachedJsonLdAnns;
 			cachedJsonLdAnns = new ArrayList<Map<String, Object>>();
 			Object jsonObj = getJsonObject(annotationsUrl);
-			workAroundValueTypeIssue(jmap(jsonObj));
 			Map<String, Object> compacted = getResolvedVersion(jsonObj);
 			Map<String, Object> commonProps = jmap(compacted.get(JSONLDKeys.COMMON_PROPERTIES));
 			List<Object> annObjects = (List<Object>) compacted.get(JSONLDKeys.ANNOTATIONS);
@@ -400,21 +394,6 @@ public class RestClient {
 				cachedJsonLdAnns.add(annAsMap);
 			}
 			return cachedJsonLdAnns;
-		}
-
-		private void workAroundValueTypeIssue(Map<String, Object> jsonObj) {
-			// XXX: workaround for HCSVLAB-812
-			List<Object> anns = (List<Object>) jsonObj.get("hcsvlab:annotations");
-			if (anns == null)
-				return; // updated API - probably don't need workaround
-			for (Object annJson: anns) {
-				Map<String, Object> ann = jmap(annJson);
-				String valType = (String) ann.get("@type");
-				if (valType != null && !valType.startsWith("#") && !valType.contains(":")) // no namespace prefix or frag prefix?
-					ann.put("@type", JSONLDKeys.PURL_SCHEMA + valType); // insert explicit prefix
-				if (valType == null) // XXX: workaround for HCSVLAB-719 - uploaded annotations can get null @type
-					ann.put("@type", JSONLDKeys.TEXT_ANNOTATION_VALUE_DEFAULT_TYPE); // at least JSONLD won't choke
-			}
 		}
 
 		@Override
@@ -667,7 +646,6 @@ public class RestClient {
 		private void initFieldsFromJSONValues() throws UnsupportedLDSchemaException {
 			annId = (String) getValue("@id");
 			type = (String) getValue(JSONLDKeys.ANNOTATION_TYPE);
-			type = TypeUriFixer.convertToUriIfNeeded(type); // XXX: temp workaround
 			label = (String) getValue(JSONLDKeys.ANNOTATION_LABEL, true);
 			start = readDouble(getValue(JSONLDKeys.ANNOTATION_START));
 			end = readDouble(getValue(JSONLDKeys.ANNOTATION_END));
