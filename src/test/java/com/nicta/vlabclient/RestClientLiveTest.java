@@ -25,15 +25,29 @@ public class RestClientLiveTest extends RestClientBaseTest {
 	}
 
 	private static boolean shouldRun() {
-		try{
+		try {
 			return getConfig().getBoolean("test.run-live");
 		} catch (ConfigException e) {
 			return false; // don't run live tests by default
 		}
 	}
 
+	private boolean shouldWriteToServer() {
+		try {
+			return getConfig().getBoolean("test.write-to-live-server");
+		} catch (ConfigException e) {
+			return false; // don't write to live server by default
+		}
+	}
+
 	public RestClientLiveTest() throws HCSvLabException {
 		super();
+	}
+
+	@Override
+	public void uploadAnnotations() throws HCSvLabException {
+		Assume.assumeTrue(shouldWriteToServer());
+		super.uploadAnnotations();
 	}
 
 	protected RestClient newRestClient() throws HCSvLabException {

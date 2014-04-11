@@ -79,10 +79,10 @@ public abstract class RestClientBaseTest {
 	public void uploadAnnotations() throws HCSvLabException {
 		Item i0 = newRestClient().getItem("gcsause/GCSAusE07");
 		List<Annotation> anns = new ArrayList<Annotation>();
-		anns.add(new TextRestAnnotation("entity", "proper-name", 0, 4));
-		anns.add(new TextRestAnnotation("pos", "NNP", 0, 4));
+		anns.add(new TextRestAnnotation("http://alveo.edu.au/test/types/entity", "proper-name", 0, 4));
+		anns.add(new TextRestAnnotation("http://alveo.edu.au/test/types/pos", "NNP", 0, 4));
 		// need different contents on successive runs or we get a duplicate file error
-		anns.add(new TextRestAnnotation("comment", "comment at time " + currDate(), 0, 4));
+		anns.add(new TextRestAnnotation("http://alveo.edu.au/test/types/comment", "comment at time " + currDate(), 0, 4));
 		i0.storeNewAnnotations(anns);
 	}
 
