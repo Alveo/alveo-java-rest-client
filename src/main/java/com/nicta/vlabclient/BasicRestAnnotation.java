@@ -1,5 +1,8 @@
 package com.nicta.vlabclient;
 
+import com.google.common.hash.HashFunction;
+import com.google.common.hash.Hasher;
+import com.google.common.hash.Hashing;
 import com.nicta.vlabclient.entity.Annotation;
 import com.nicta.vlabclient.entity.JSONLDKeys;
 
@@ -15,6 +18,8 @@ public abstract class BasicRestAnnotation extends JsonLdDerivedObject implements
 	protected String valueType;
 	protected double start;
 	protected double end;
+
+	private static HashFunction hashFn = Hashing.goodFastHash(Integer.SIZE);
 
 	/** Internal use only - for subclasses which set the values differently */
 	BasicRestAnnotation() {
@@ -75,4 +80,28 @@ public abstract class BasicRestAnnotation extends JsonLdDerivedObject implements
 		return ldValues;
 	}
 
+	protected Hasher getHasher() {
+		Hasher h = hashFn.newHasher().putInt(type.length()).putString(type);
+		if (label != null) {
+			h.putInt(label.length());
+			h.putString(label);
+		}
+		return h.putDouble(start).putDouble(end);
+	}
+
+	@Override
+	public int hashCode() {
+		return getHasher().hash().asInt();
+	}
+
+	@Override
+	public boolean equals(Object other) {
+		try {
+			BasicRestAnnotation otherAnn = (BasicRestAnnotation) other;
+			boolean labelsMatch = (label == null && otherAnn.label == null) || label.equals(otherAnn.label);
+			return type.equals(otherAnn.type) && labelsMatch && start == otherAnn.start && end == otherAnn.end;
+		} catch (ClassCastException e) {
+			return false;
+		}
+	}
 }
