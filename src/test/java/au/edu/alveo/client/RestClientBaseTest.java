@@ -28,7 +28,7 @@ public abstract class RestClientBaseTest {
 	}
 
 	static Config getConfig() {
-		return ConfigFactory.load().getConfig("client");
+		return ConfigFactory.load().getConfig("alveo-rest-client");
 	}
 
 	@Test

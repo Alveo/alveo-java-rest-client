@@ -1,8 +1,8 @@
-# HCS vLab Client
+# Alveo REST API Client
 
-A Java interface to [HCS vLab][hvl].
+A Java interface to [Alveo][alv].
 
-[hvl]: http://hcsvlab.org.au/
+[alv]: http://alveo.edu.au/
 
 ## Purpose
 
@@ -29,9 +29,9 @@ the location of the server and the API key. Create a file at
 `src/test/resources/example.conf` -- that is, with three keys:
 
 [hocon]: https://github.com/typesafehub/config/blob/master/HOCON.md
- * `vlabclient.test.run-live` -- whether to run the live tests
- * `vlabclient.test.server-base` -- the base URL of the HCS vLab server
- * `vlabclient.test.api-key` -- the API key
+ * `alveo-rest-client.test.run-live` -- whether to run the live tests
+ * `alveo-rest-client.test.server-base` -- the base URL of the HCS vLab server
+ * `alveo-rest-client.test.api-key` -- the API key
 
 If you don't set this up, only the recorded tests will run, although
 this is probably OK.
