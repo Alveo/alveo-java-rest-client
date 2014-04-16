@@ -1,6 +1,6 @@
 package au.edu.alveo.client;
 
-public class UnknownServerAPIVersionException extends HCSvLabRuntimeException {
+public class UnknownServerAPIVersionException extends AlveoRuntimeException {
 
 	public UnknownServerAPIVersionException() {
 	}

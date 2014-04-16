@@ -1,6 +1,6 @@
 package au.edu.alveo.client.entity;
 
-public class EntityNotFoundException extends HCSvLabException {
+public class EntityNotFoundException extends AlveoException {
 
 	public EntityNotFoundException() {
 	}

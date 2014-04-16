@@ -1,6 +1,6 @@
 package au.edu.alveo.client.entity;
 
-public class UnauthorizedAPIKeyException extends HCSvLabException {
+public class UnauthorizedAPIKeyException extends AlveoException {
 
 	public UnauthorizedAPIKeyException() {
 	}

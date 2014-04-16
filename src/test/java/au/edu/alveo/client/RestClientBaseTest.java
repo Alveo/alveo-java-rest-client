@@ -1,7 +1,7 @@
 package au.edu.alveo.client;
 
+import au.edu.alveo.client.entity.AlveoException;
 import au.edu.alveo.client.entity.Annotation;
-import au.edu.alveo.client.entity.HCSvLabException;
 import au.edu.alveo.client.entity.Item;
 import au.edu.alveo.client.entity.ItemList;
 import au.edu.alveo.client.entity.TextAnnotation;
@@ -21,7 +21,7 @@ import java.util.List;
  */
 public abstract class RestClientBaseTest {
 
-	public RestClientBaseTest() throws HCSvLabException {
+	public RestClientBaseTest() throws AlveoException {
 		// can't initialise the rest client here due to
 		// using betamax in testing. Recreating the client for every call is not
 		// recommended for general use though
@@ -32,7 +32,7 @@ public abstract class RestClientBaseTest {
 	}
 
 	@Test
-	public void fetchItemList() throws HCSvLabException {
+	public void fetchItemList() throws AlveoException {
 		ItemList il = newRestClient().getItemList("45");
 		Assert.assertEquals(2, il.numItems());
 		List<Item> items = il.getCatalogItems();
@@ -41,7 +41,7 @@ public abstract class RestClientBaseTest {
 	}
 
 	@Test
-	public void fetchItem() throws HCSvLabException {
+	public void fetchItem() throws AlveoException {
 		Item item0 = newRestClient().getItem("gcsause/GCSAusE07");
 		String item0text = item0.primaryText();
 		Assert.assertTrue(item0text.startsWith("Andy’s starting"));
@@ -49,14 +49,14 @@ public abstract class RestClientBaseTest {
 	}
 
 	@Test
-	public void fetchAnnotations() throws HCSvLabException {
+	public void fetchAnnotations() throws AlveoException {
 		Item item = newRestClient().getItem("gcsause/GCSAusE07");
 		List<Annotation> anns = item.getAnnotations();
 		Assert.assertTrue(anns.size() > 20);
 	}
 
 	@Test
-	public void checkAnnotations() throws HCSvLabException {
+	public void checkAnnotations() throws AlveoException {
 		Item item = newRestClient().getItem("gcsause/GCSAusE07");
 		List<Annotation> anns = item.getAnnotations();
 		TextAnnotation firstSpkrAnn = (TextAnnotation) anns.get(9);
@@ -76,7 +76,7 @@ public abstract class RestClientBaseTest {
 	}
 
 	@Test
-	public void uploadAnnotations() throws HCSvLabException {
+	public void uploadAnnotations() throws AlveoException {
 		Item i0 = newRestClient().getItem("gcsause/GCSAusE07");
 		List<Annotation> anns = new ArrayList<Annotation>();
 		anns.add(new TextRestAnnotation("http://alveo.edu.au/test/types/entity", "proper-name", 0, 4));
@@ -87,7 +87,7 @@ public abstract class RestClientBaseTest {
 	}
 
 	@Test
-	public void createRestClient() throws HCSvLabException {
+	public void createRestClient() throws AlveoException {
 		newRestClient();
 	}
 
@@ -95,7 +95,7 @@ public abstract class RestClientBaseTest {
 		return String.format("%tFT%<tRZ", new Date());
 	}
 
-	protected abstract RestClient newRestClient() throws HCSvLabException;
+	protected abstract RestClient newRestClient() throws AlveoException;
 
 	static String liveServerBase() {
 		return getConfig().getString("test.server-base");

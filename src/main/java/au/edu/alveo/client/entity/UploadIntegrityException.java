@@ -3,7 +3,7 @@ package au.edu.alveo.client.entity;
 /**
  * Created by amack on 18/02/14.
  */
-public class UploadIntegrityException extends HCSvLabException {
+public class UploadIntegrityException extends AlveoException {
 	public UploadIntegrityException() {
 		super();
 	}

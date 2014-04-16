@@ -1,6 +1,6 @@
 package au.edu.alveo.client;
 
-public class MalformedJSONException extends HCSvLabRuntimeException {
+public class MalformedJSONException extends AlveoRuntimeException {
 
 	public MalformedJSONException() {
 	}

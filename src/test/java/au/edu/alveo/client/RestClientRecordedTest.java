@@ -1,9 +1,9 @@
 package au.edu.alveo.client;
 
+import au.edu.alveo.client.entity.AlveoException;
 import co.freeside.betamax.Betamax;
 import co.freeside.betamax.Recorder;
 import co.freeside.betamax.TapeMode;
-import au.edu.alveo.client.entity.HCSvLabException;
 import com.typesafe.config.ConfigException;
 import org.junit.Assume;
 import org.junit.BeforeClass;
@@ -58,48 +58,48 @@ public class RestClientRecordedTest extends RestClientBaseTest {
 	}
 
 
-	public RestClientRecordedTest() throws HCSvLabException {
+	public RestClientRecordedTest() throws AlveoException {
 		super();
 		recorder.setDefaultMode(inRecordMode() ? TapeMode.READ_WRITE : TapeMode.READ_ONLY);
 	}
 
 	@Betamax(tape = "standard_test")
 	@Test
-	public void fetchItemList() throws HCSvLabException {
+	public void fetchItemList() throws AlveoException {
 		super.fetchItemList();
 	}
 
 	@Betamax(tape = "standard_test")
 	@Test
-	public void fetchItem() throws HCSvLabException {
+	public void fetchItem() throws AlveoException {
 		super.fetchItem();
 	}
 
 	@Betamax(tape = "standard_test")
 	@Test
-	public void fetchAnnotations() throws HCSvLabException {
+	public void fetchAnnotations() throws AlveoException {
 		super.fetchAnnotations();
 	}
 
 	@Betamax(tape = "standard_test")
 	@Test
-	public void checkAnnotations() throws HCSvLabException {
+	public void checkAnnotations() throws AlveoException {
 		super.checkAnnotations();
 	}
 
 	@Betamax(tape = "standard_test")
 	@Test
-	public void uploadAnnotations() throws HCSvLabException {
+	public void uploadAnnotations() throws AlveoException {
 		super.uploadAnnotations();
 	}
 
 	@Betamax(tape = "standard_test")
 	@Test
-	public void createRestClient() throws HCSvLabException {
+	public void createRestClient() throws AlveoException {
 		super.createRestClient();
 	}
 
-	protected RestClient newRestClient() throws HCSvLabException {
+	protected RestClient newRestClient() throws AlveoException {
 		try {
 			if (inRecordMode())
 				return new RestClient(liveServerBase(), liveApiKey());

@@ -1,6 +1,6 @@
 package au.edu.alveo.client.entity;
 
-public class InvalidServerAddressException extends HCSvLabException {
+public class InvalidServerAddressException extends AlveoException {
 
 	public InvalidServerAddressException() {
 	}

@@ -3,7 +3,7 @@ package au.edu.alveo.client;
 /**
  * Created by amack on 19/02/14.
  */
-public class InvalidServerResponseException extends HCSvLabRuntimeException {
+public class InvalidServerResponseException extends AlveoRuntimeException {
 	public InvalidServerResponseException() {
 		super();
 	}

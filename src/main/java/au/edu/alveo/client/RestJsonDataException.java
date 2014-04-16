@@ -3,7 +3,7 @@ package au.edu.alveo.client;
 /**
  * Created by amack on 17/03/14.
  */
-public class RestJsonDataException extends HCSvLabRuntimeException {
+public class RestJsonDataException extends AlveoRuntimeException {
 	public RestJsonDataException() {
 	}
 

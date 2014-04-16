@@ -1,6 +1,6 @@
 package au.edu.alveo.client;
 
-import au.edu.alveo.client.entity.HCSvLabException;
+import au.edu.alveo.client.entity.AlveoException;
 import com.typesafe.config.ConfigException;
 import org.junit.Assume;
 import org.junit.BeforeClass;
@@ -40,17 +40,17 @@ public class RestClientLiveTest extends RestClientBaseTest {
 		}
 	}
 
-	public RestClientLiveTest() throws HCSvLabException {
+	public RestClientLiveTest() throws AlveoException {
 		super();
 	}
 
 	@Override
-	public void uploadAnnotations() throws HCSvLabException {
+	public void uploadAnnotations() throws AlveoException {
 		Assume.assumeTrue(shouldWriteToServer());
 		super.uploadAnnotations();
 	}
 
-	protected RestClient newRestClient() throws HCSvLabException {
+	protected RestClient newRestClient() throws AlveoException {
 		try {
 			return new RestClient(liveServerBase(), liveApiKey());
 		} catch (ConfigException e) {

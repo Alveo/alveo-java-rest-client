@@ -3,7 +3,7 @@ package au.edu.alveo.client.entity;
 /**
  * Created by amack on 19/02/14.
  */
-public class InvalidAnnotationException extends HCSvLabException {
+public class InvalidAnnotationException extends AlveoException {
 	public InvalidAnnotationException() {
 		super();
 	}
