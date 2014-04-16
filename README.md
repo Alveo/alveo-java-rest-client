@@ -16,8 +16,8 @@ The project uses a fairly standard Maven build setup. Build using
 
 ## Usage
 
-To access the REST API, instantiate `com.nicta.vlabclient.RestClient`.
-The class `com.nicta.vlabclient.examples.RestClientExample` is fairly
+To access the REST API, instantiate `au.edu.alveo.client.RestClient`.
+The class `au.edu.alveo.client.examples.RestClientExample` is fairly
 simple command line client. Invoke with no arguments for a usage
 message. The code of the class also provides an example of API usage.
 
