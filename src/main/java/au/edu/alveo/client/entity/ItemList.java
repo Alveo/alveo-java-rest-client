@@ -2,7 +2,7 @@ package au.edu.alveo.client.entity;
 
 import java.util.List;
 
-/** A representation of an HCS vLab item list. Modelled fairly closely on the JSON REST model,
+/** A representation of an Alveo item list. Modelled fairly closely on the JSON REST model,
  * but at a slightly higher level, with a number of convenience methods to enable 
  * easier retrieval of related objects, for example
  * @author andrew.mackinlay

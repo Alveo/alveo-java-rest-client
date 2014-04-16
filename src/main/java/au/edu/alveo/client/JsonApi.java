@@ -3,7 +3,7 @@ package au.edu.alveo.client;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 /** A class to hold struct-like classes to represent JSON data from
- * the HCS vLab web API
+ * the Alveo web API
  * 
  * Package visibility as these are not designed for external use
  * @author amack

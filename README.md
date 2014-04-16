@@ -6,7 +6,7 @@ A Java interface to [Alveo][alv].
 
 ## Purpose
 
-This package provides a Java wrapper for the REST API of HCS vLab.
+This package provides a Java wrapper for the REST API of Alveo.
 
 ## Building
 
@@ -30,7 +30,7 @@ the location of the server and the API key. Create a file at
 
 [hocon]: https://github.com/typesafehub/config/blob/master/HOCON.md
  * `alveo-rest-client.test.run-live` -- whether to run the live tests
- * `alveo-rest-client.test.server-base` -- the base URL of the HCS vLab server
+ * `alveo-rest-client.test.server-base` -- the base URL of the Alveo server
  * `alveo-rest-client.test.api-key` -- the API key
 
 If you don't set this up, only the recorded tests will run, although

@@ -2,7 +2,7 @@ package au.edu.alveo.client.entity;
 
 import java.util.Map;
 
-/** A representation of an Item from a item list in the HCS vLab REST API
+/** A representation of an Item from a item list in the Alveo REST API
  * 
  * @author andrew.mackinlay
  *
@@ -12,7 +12,7 @@ public interface Annotation {
 	/** Return the unique ID associated with the annotation */
 	public String getId();
 
-	/** Return the type of the annotation (such as "laughter", "speaker") according to HCS vLab */
+	/** Return the type of the annotation (such as "laughter", "speaker") according to Alveo */
 	public String getType();
 
 	/** Return the label assigned to the annotation

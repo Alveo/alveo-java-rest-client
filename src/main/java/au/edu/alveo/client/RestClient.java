@@ -44,7 +44,7 @@ import java.util.List;
 import java.util.Map;
 
 /**
- * The primary class to use to interact with the HCS vLab REST API - use this to
+ * The primary class to use to interact with the Alveo REST API - use this to
  * retrieve items
  * 
  * @author Andrew MacKinlay
@@ -83,7 +83,7 @@ public class RestClient {
 	 *            REST API.
 	 * @param apiKey
 	 *            The API key for the relevant user account, available from the
-	 *            HCS vLab web interface
+	 *            Alveo web interface
 	 * @throws UnknownServerAPIVersionException
 	 *             If the server's reported API version is incompatible with
 	 *             this code
@@ -165,7 +165,7 @@ public class RestClient {
 	}
 
 	/**
-	 * A representation of an HCS vLab item list which uses the vLab REST client
+	 * A representation of an Alveo item list which uses the vLab REST client
 	 * to retrieve related data
 	 * 
 	 * @author andrew.mackinlay
@@ -230,7 +230,7 @@ public class RestClient {
 	}
 
 	/**
-	 * A representation of an Item from a item list in the HCS vLab REST API
+	 * A representation of an Item from a item list in the Alveo REST API
 	 * 
 	 * @author andrew.mackinlay
 	 * 
@@ -400,7 +400,7 @@ public class RestClient {
 		public void storeNewAnnotations(List<? extends Annotation> annotations)
 				throws EntityNotFoundException, UploadIntegrityException, InvalidAnnotationException {
 			String annUploadUri = uri + "/annotations";
-			// HCS vLab expects a multipart file upload of the JSON rather than raw post data.
+			// Alveo expects a multipart file upload of the JSON rather than raw post data.
 			// so we have to use the Apache HTTP client directly to build up the call
 			// instead of using JAX-RS.
 			String uploadableJson = JSONUtils.toString(jsonMapForAnnUpload(annotations));
@@ -850,7 +850,7 @@ public class RestClient {
 	 * 
 	 * @param itemListId
 	 *            the ID of the item list
-	 * @return unformatted JSON from the HCS vLab REST server
+	 * @return unformatted JSON from the Alveo REST server
 	 * @throws EntityNotFoundException
 	 *             If the item list cannot be found
 	 * @throws UnauthorizedAPIKeyException
@@ -872,7 +872,7 @@ public class RestClient {
 	 * 
 	 * @param itemListUri
 	 *            the fully qualified URI for the REST API
-	 * @return unformatted JSON from the HCS vLab REST server
+	 * @return unformatted JSON from the Alveo REST server
 	 * @throws UnauthorizedAPIKeyException
 	 *             if the API key does not permit access
 	 * @see RestClient#getItemListJson(String)
