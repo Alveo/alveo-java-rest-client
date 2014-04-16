@@ -7,7 +7,7 @@
 	<version>0.7.0-SNAPSHOT</version>
 	<packaging>jar</packaging>
 	<name>Alveo REST API Client</name>
-	<url>http://bitbucket.org/andymackinlay/vlabclient</url>
+	<url>http://bitbucket.org/andymackinlay/alveo-rest-client</url>
 	<organization>
 		<name>Alveo</name>
 		<url>http://alveo.edu.au/</url>
