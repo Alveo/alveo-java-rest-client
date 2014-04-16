@@ -2,10 +2,11 @@
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 				 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
-	<groupId>com.nicta</groupId>
-	<version>0.6.0-SNAPSHOT</version>
+	<groupId>au.edu.alveo</groupId>
+	<artifactId>alveo-rest-client</artifactId>
+	<version>0.7.0-SNAPSHOT</version>
 	<packaging>jar</packaging>
-	<name>vlabclient</name>
+	<name>Alveo REST API Client</name>
 	<url>http://bitbucket.org/andymackinlay/vlabclient</url>
 	<organization>
 		<name>Alveo</name>
@@ -18,7 +19,7 @@
 		</developer>
 	</developers>
 	<inceptionYear>2013</inceptionYear>
-	<description>Java wrapper for the HCS vLab REST API</description>
+	<description>Java wrapper for the Alveo HTTP REST API</description>
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 	</properties>
@@ -188,5 +189,4 @@
 			</plugin>
 		</plugins>
 	</build>
-	<artifactId>vlabclient</artifactId>
 </project>
