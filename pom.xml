@@ -4,7 +4,7 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>au.edu.alveo</groupId>
 	<artifactId>alveo-rest-client</artifactId>
-	<version>0.7.0-SNAPSHOT</version>
+	<version>0.7.0</version>
 	<packaging>jar</packaging>
 	<name>Alveo REST API Client</name>
 	<url>https://github.com/Alveo/alveo-uima</url>
@@ -94,7 +94,7 @@
 			<artifactId>httpclient</artifactId>
 			<version>4.3.1</version>
 		</dependency>
-		<dependency> <!-- SNAPSHOT needed until beta2 is released due to SES-2039 and SES-2040 -->
+		<dependency> <!-- SNAPSHOT needed until beta2 (or RC/official) is released due to SES-2039 and SES-2040 -->
 			<groupId>org.openrdf.sesame</groupId>
 			<artifactId>sesame-repository-sparql</artifactId>
 			<version>2.8.0-beta2-SNAPSHOT</version>
@@ -140,7 +140,7 @@
 		</dependency>
 	</dependencies>
 	<repositories>
-		<repository> <!-- needed for Sesame 2.8.0-beta2-SNAPSHOT -->
+		<repository> <!-- needed for Sesame 2.8.0-beta2-SNAPSHOT  - remove once SNAPSHOT no longer needed -->
 			<id>sonatype-staging</id>
 			<url>https://oss.sonatype.org/content/repositories/staging/</url>
 		</repository>
