@@ -158,10 +158,9 @@ public class RestClient {
 					+ " may be invalid", e);
 		}
 		String version = verRes.apiVersion;
-		if (!version.equals("2.0") && !version.startsWith("Sprint_")
-				&& !version.startsWith("HEAD ("))
-			throw new UnknownServerAPIVersionException(
-					"This codebase is not designed for API version " + version);
+		if (!version.equals("v3") && !version.startsWith("Sprint_")
+				&& !version.startsWith("HEAD (") && !version.startsWith("V3_candidate"))
+			LOG.warn("This codebase has not been tested with API version " + version);
 	}
 
 	/**
